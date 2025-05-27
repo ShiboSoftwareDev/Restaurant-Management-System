@@ -5,54 +5,31 @@ namespace Restaurant_Management_System
         public Form1()
         {
             InitializeComponent();
-        }
-
-        private void LoginButton_Click(object sender, EventArgs e)
-        {
-            AttemptLogin();
-        }
-
-        private void PasswordTextBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                AttemptLogin();
-            }
-        }
-
-        private void AttemptLogin()
-        {
-            if (usernameTextBox.Text == "admin" && passwordTextBox.Text == "admin")
-            {
-                loginPanel.Visible = false;
-                menuStrip1.Visible = true;
-                mainPanel.Visible = true;
-                ShowSection("Orders");
-            }
-            else
-            {
-                MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            ShowSection("Orders");
         }
 
         private void ShowSection(string section)
         {
             tablesPanel.Visible = false;
             itemsPanel.Visible = false;
-            if (section == "Orders") {
+            if (section == "Orders")
+            {
                 if (tablesPanel.Controls.Count == 0) SetupTablesPanel();
                 tablesPanel.Visible = true;
-            } else if (section == "Items") {
+            }
+            else if (section == "Items")
+            {
                 if (itemsPanel.Controls.Count == 0) SetupItemsPanel();
                 itemsPanel.Visible = true;
             }
         }
 
-        private class TableOrder {
+        private class TableOrder
+        {
             public int TableNumber { get; set; }
             public string ClientName { get; set; }
             public string Server { get; set; }
-            public string Status { get; set; } 
+            public string Status { get; set; }
             public List<MenuItem> OrderItems { get; set; } = new List<MenuItem>();
             public decimal TotalPrice => OrderItems.Sum(i => i.Price);
         }
@@ -94,12 +71,13 @@ namespace Restaurant_Management_System
             var tableNumBox = new NumericUpDown { Minimum = 1, Maximum = 100, Width = 80, Font = new Font("Segoe UI", 12) };
             int defaultTable = 1;
             var occupiedTables = tableOrders.Select(t => t.TableNumber).ToHashSet();
-            for (int i = 1; i <= 100; i++) {
+            for (int i = 1; i <= 100; i++)
+            {
                 if (!occupiedTables.Contains(i)) { defaultTable = i; break; }
             }
             tableNumBox.Value = defaultTable;
             var clientNameBox = new TextBox { Width = 200, Font = new Font("Segoe UI", 12), PlaceholderText = "Client Name" };
-            var addClientBtn = new Button { Text = "Add Client", Height = 44, Width = 140, BackColor = Color.FromArgb(0,120,215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
+            var addClientBtn = new Button { Text = "Add Client", Height = 44, Width = 140, BackColor = Color.FromArgb(0, 120, 215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             addClientBtn.FlatAppearance.BorderSize = 0;
             var editClientBtn = new Button { Text = "Edit Client", Height = 44, Width = 140, BackColor = Color.FromArgb(255, 180, 40), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             editClientBtn.FlatAppearance.BorderSize = 0;
@@ -121,14 +99,20 @@ namespace Restaurant_Management_System
             addOrderPanel.Controls.Add(addOrderBtn);
             addOrderPanel.Controls.Add(markReadyBtn);
             addOrderPanel.Controls.Add(markPaidBtn);
-            tablesPanel.Controls.Add(tablesGrid);
-            tablesPanel.Controls.Add(addOrderPanel);
             tablesPanel.Controls.Add(label);
+            tablesPanel.Controls.Add(addOrderPanel);
+            tablesPanel.Controls.Add(tablesGrid);
+            label.Dock = DockStyle.Top;
+            addOrderPanel.Dock = DockStyle.Bottom;
+            tablesGrid.Dock = DockStyle.Fill;
+            addOrderPanel.BringToFront();
+            label.BringToFront();
         }
         private void RefreshTablesGrid()
         {
             tablesGrid.DataSource = null;
-            tablesGrid.DataSource = tableOrders.Select(t => new {
+            tablesGrid.DataSource = tableOrders.Select(t => new
+            {
                 t.TableNumber,
                 t.ClientName,
                 t.Server,
@@ -138,7 +122,8 @@ namespace Restaurant_Management_System
             }).ToList();
         }
 
-        private class MenuItem {
+        private class MenuItem
+        {
             public string Name { get; set; }
             public decimal Price { get; set; }
             public string Category { get; set; }
@@ -178,7 +163,7 @@ namespace Restaurant_Management_System
             var nameBox = new TextBox { Width = 200, Font = new Font("Segoe UI", 12), PlaceholderText = "Name" };
             var priceBox = new NumericUpDown { Minimum = 0, Maximum = 1000, DecimalPlaces = 2, Width = 100, Font = new Font("Segoe UI", 12) };
             var categoryBox = new TextBox { Width = 150, Font = new Font("Segoe UI", 12), PlaceholderText = "Category" };
-            var addItemBtn = new Button { Text = "Add Item", Height = 44, Width = 140, BackColor = Color.FromArgb(0,120,215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
+            var addItemBtn = new Button { Text = "Add Item", Height = 44, Width = 140, BackColor = Color.FromArgb(0, 120, 215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             addItemBtn.FlatAppearance.BorderSize = 0;
             var editItemBtn = new Button { Text = "Edit Item", Height = 44, Width = 140, BackColor = Color.FromArgb(255, 180, 40), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             editItemBtn.FlatAppearance.BorderSize = 0;
@@ -193,14 +178,20 @@ namespace Restaurant_Management_System
             addItemPanel.Controls.Add(addItemBtn);
             addItemPanel.Controls.Add(editItemBtn);
             addItemPanel.Controls.Add(deleteItemBtn);
-            itemsPanel.Controls.Add(itemsGrid);
-            itemsPanel.Controls.Add(addItemPanel);
             itemsPanel.Controls.Add(label);
+            itemsPanel.Controls.Add(addItemPanel);
+            itemsPanel.Controls.Add(itemsGrid);
+            label.Dock = DockStyle.Top;
+            addItemPanel.Dock = DockStyle.Bottom;
+            itemsGrid.Dock = DockStyle.Fill;
+            addItemPanel.BringToFront();
+            label.BringToFront();
         }
         private void RefreshItemsGrid()
         {
             itemsGrid.DataSource = null;
             itemsGrid.DataSource = menuItems.Select(m => new { m.Name, m.Price, m.Category }).ToList();
         }
+
     }
 }
