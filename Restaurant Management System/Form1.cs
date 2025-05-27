@@ -5,6 +5,8 @@ namespace Restaurant_Management_System
         public Form1()
         {
             InitializeComponent();
+            ordersToolStripMenuItem.Click += (s, e) => ShowSection("Orders");
+            menuToolStripMenuItem.Click += (s, e) => ShowSection("Items");
             ShowSection("Orders");
         }
 
@@ -44,7 +46,7 @@ namespace Restaurant_Management_System
         private void SetupTablesPanel()
         {
             tablesPanel.Controls.Clear();
-            var label = new Label { Text = "Tables & Clients", Dock = DockStyle.Top, Font = new Font("Segoe UI", 18, FontStyle.Bold), Height = 48, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(0, 120, 215) };
+            var label = new Label { Text = "Tables & Clients", Dock = DockStyle.Top, Font = new Font("Segoe UI", 18, FontStyle.Bold), Height = 48, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(0, 120, 215), AutoSize = false, Padding = new Padding(16, 0, 0, 0) };
             tablesGrid = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -99,15 +101,11 @@ namespace Restaurant_Management_System
             addOrderPanel.Controls.Add(addOrderBtn);
             addOrderPanel.Controls.Add(markReadyBtn);
             addOrderPanel.Controls.Add(markPaidBtn);
-            tablesPanel.Controls.Add(label);
             tablesPanel.Controls.Add(addOrderPanel);
             tablesPanel.Controls.Add(tablesGrid);
-            label.Dock = DockStyle.Top;
-            addOrderPanel.Dock = DockStyle.Bottom;
-            tablesGrid.Dock = DockStyle.Fill;
-            addOrderPanel.BringToFront();
-            label.BringToFront();
+            tablesPanel.Controls.Add(label);
         }
+
         private void RefreshTablesGrid()
         {
             tablesGrid.DataSource = null;
@@ -139,7 +137,7 @@ namespace Restaurant_Management_System
         private void SetupItemsPanel()
         {
             itemsPanel.Controls.Clear();
-            var label = new Label { Text = "Menu Items", Dock = DockStyle.Top, Font = new Font("Segoe UI", 18, FontStyle.Bold), Height = 48, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(0, 120, 215) };
+            var label = new Label { Text = "Menu Items", Dock = DockStyle.Top, Font = new Font("Segoe UI", 18, FontStyle.Bold), Height = 48, TextAlign = ContentAlignment.MiddleLeft, ForeColor = Color.FromArgb(0, 120, 215), AutoSize = false, Padding = new Padding(16, 0, 0, 0) };
             itemsGrid = new DataGridView
             {
                 Dock = DockStyle.Fill,
@@ -178,19 +176,9 @@ namespace Restaurant_Management_System
             addItemPanel.Controls.Add(addItemBtn);
             addItemPanel.Controls.Add(editItemBtn);
             addItemPanel.Controls.Add(deleteItemBtn);
-            itemsPanel.Controls.Add(label);
             itemsPanel.Controls.Add(addItemPanel);
             itemsPanel.Controls.Add(itemsGrid);
-            label.Dock = DockStyle.Top;
-            addItemPanel.Dock = DockStyle.Bottom;
-            itemsGrid.Dock = DockStyle.Fill;
-            addItemPanel.BringToFront();
-            label.BringToFront();
-        }
-        private void RefreshItemsGrid()
-        {
-            itemsGrid.DataSource = null;
-            itemsGrid.DataSource = menuItems.Select(m => new { m.Name, m.Price, m.Category }).ToList();
+            itemsPanel.Controls.Add(label);
         }
 
     }

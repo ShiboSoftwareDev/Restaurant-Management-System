@@ -11,11 +11,11 @@ namespace Restaurant_Management_System
         public LoginForm()
         {
             InitializeComponent();
-            this.ClientSize = new System.Drawing.Size(220, 120);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.ClientSize = new System.Drawing.Size(320, 180);
             this.Text = "Login";
         }
 
