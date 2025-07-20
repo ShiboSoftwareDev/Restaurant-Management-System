@@ -29,47 +29,58 @@ namespace Restaurant_Management_System
             // 
             // usernameLabel
             // 
-            this.usernameLabel.Text = "Username:";
-            this.usernameLabel.Location = new System.Drawing.Point(18, 18);
+            this.usernameLabel.Location = new System.Drawing.Point(20, 20);
+            this.usernameLabel.Name = "usernameLabel";
             this.usernameLabel.Size = new System.Drawing.Size(90, 24);
+            this.usernameLabel.TabIndex = 0;
+            this.usernameLabel.Text = "Username:";
             this.usernameLabel.Font = new System.Drawing.Font("Segoe UI", 10F);
             // 
             // passwordLabel
             // 
-            this.passwordLabel.Text = "Password:";
-            this.passwordLabel.Location = new System.Drawing.Point(18, 56);
+            this.passwordLabel.Location = new System.Drawing.Point(20, 60);
+            this.passwordLabel.Name = "passwordLabel";
             this.passwordLabel.Size = new System.Drawing.Size(90, 24);
+            this.passwordLabel.TabIndex = 1;
+            this.passwordLabel.Text = "Password:";
             this.passwordLabel.Font = new System.Drawing.Font("Segoe UI", 10F);
             // 
             // usernameTextBox
             // 
-            this.usernameTextBox.Location = new System.Drawing.Point(110, 16);
-            this.usernameTextBox.Size = new System.Drawing.Size(140, 25);
+            this.usernameTextBox.Location = new System.Drawing.Point(120, 20);
+            this.usernameTextBox.Name = "usernameTextBox";
+            this.usernameTextBox.Size = new System.Drawing.Size(160, 25);
+            this.usernameTextBox.TabIndex = 2;
             this.usernameTextBox.Font = new System.Drawing.Font("Segoe UI", 10F);
             // 
             // passwordTextBox
             // 
-            this.passwordTextBox.Location = new System.Drawing.Point(110, 54);
-            this.passwordTextBox.Size = new System.Drawing.Size(140, 25);
-            this.passwordTextBox.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.passwordTextBox.Location = new System.Drawing.Point(120, 60);
+            this.passwordTextBox.Name = "passwordTextBox";
             this.passwordTextBox.PasswordChar = '*';
+            this.passwordTextBox.Size = new System.Drawing.Size(160, 25);
+            this.passwordTextBox.TabIndex = 3;
+            this.passwordTextBox.Font = new System.Drawing.Font("Segoe UI", 10F);
             // 
             // loginButton
             // 
-            this.loginButton.Text = "Login";
-            this.loginButton.Location = new System.Drawing.Point(110, 92);
-            this.loginButton.Size = new System.Drawing.Size(140, 32);
             this.loginButton.BackColor = System.Drawing.Color.FromArgb(0, 120, 215);
-            this.loginButton.ForeColor = System.Drawing.Color.White;
+            this.loginButton.FlatAppearance.BorderSize = 0;
             this.loginButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.loginButton.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.loginButton.FlatAppearance.BorderSize = 0;
+            this.loginButton.ForeColor = System.Drawing.Color.White;
+            this.loginButton.Location = new System.Drawing.Point(120, 100);
+            this.loginButton.Name = "loginButton";
+            this.loginButton.Size = new System.Drawing.Size(160, 35);
+            this.loginButton.TabIndex = 4;
+            this.loginButton.Text = "Login";
+            this.loginButton.UseVisualStyleBackColor = false;
             this.loginButton.Click += new System.EventHandler(this.loginButton_Click);
             // 
             // LoginForm
             // 
             this.AcceptButton = this.loginButton;
-            this.ClientSize = new System.Drawing.Size(220, 120);
+            this.ClientSize = new System.Drawing.Size(300, 150);
             this.Controls.Add(this.usernameLabel);
             this.Controls.Add(this.passwordLabel);
             this.Controls.Add(this.usernameTextBox);
@@ -78,10 +89,12 @@ namespace Restaurant_Management_System
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
+            this.Name = "LoginForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Login";
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
     }
 }
