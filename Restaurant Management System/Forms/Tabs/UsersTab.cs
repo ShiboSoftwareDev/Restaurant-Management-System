@@ -49,6 +49,16 @@ namespace Restaurant_Management_System
                     MessageBox.Show("Username and password cannot be empty.");
                     return;
                 }
+                if (username.Length < 4)
+                {
+                    MessageBox.Show("Username must be at least 4 characters.");
+                    return;
+                }
+                if (password.Length < 8 || !HasNumber(password) || !HasUpper(password))
+                {
+                    MessageBox.Show("Password must be at least 8 characters, contain a number and a capital letter.");
+                    return;
+                }
                 string hashedPassword = SecurityHelper.ComputeSha256Hash(password);
                 try
                 {
@@ -62,6 +72,20 @@ namespace Restaurant_Management_System
                 {
                     MessageBox.Show("Error adding user: " + ex.Message);
                 }
+            };
+
+            bool HasNumber(string s)
+            {
+                foreach (char c in s)
+                    if (char.IsDigit(c)) return true;
+                return false;
+            }
+
+            bool HasUpper(string s)
+            {
+                foreach (char c in s)
+                    if (char.IsUpper(c)) return true;
+                return false;
             };
 
             // Allow toggling admin status in grid with single click

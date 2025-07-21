@@ -28,6 +28,18 @@ namespace Restaurant_Management_System
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+            if (username.Length < 4)
+            {
+                MessageBox.Show("Username must be at least 4 characters.", "Input Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (password.Length < 8 || !HasNumber(password) || !HasUpper(password))
+            {
+                MessageBox.Show("Password must be at least 8 characters, contain a number and a capital letter.", "Input Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             try
             {
@@ -81,6 +93,20 @@ namespace Restaurant_Management_System
                 int result = (int)cmd.ExecuteScalar();
                 return result > 0;
             }
+        }
+        
+        private bool HasNumber(string s)
+        {
+            foreach (char c in s)
+                if (char.IsDigit(c)) return true;
+            return false;
+        }
+
+        private bool HasUpper(string s)
+        {
+            foreach (char c in s)
+                if (char.IsUpper(c)) return true;
+            return false;
         }
     }
 }

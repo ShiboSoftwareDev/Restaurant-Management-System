@@ -100,12 +100,7 @@ namespace Restaurant_Management_System
                             OrderId INT NOT NULL FOREIGN KEY REFERENCES Orders(OrderId),
                             ItemId INT NOT NULL FOREIGN KEY REFERENCES MenuItems(ItemId),
                             Quantity INT NOT NULL
-                        );
-                        
-                        -- Add default admin user if not exists
-                        IF NOT EXISTS (SELECT * FROM Users WHERE Username = 'admin')
-                        INSERT INTO Users (Username, PasswordHash, IsAdmin) 
-                        VALUES ('admin', 'admin', 1);", connection);
+                        );", connection);
 
                     createTablesCmd.ExecuteNonQuery();
                 }
