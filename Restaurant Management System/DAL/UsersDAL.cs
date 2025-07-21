@@ -47,6 +47,27 @@ namespace Restaurant_Management_System.DAL
             }
         }
 
-        // Add more DAL methods as needed (e.g., DeleteUser, UpdateUser, etc.)
+        public static void UpdateUserAdmin(int userId, bool isAdmin)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                var cmd = new SqlCommand("UPDATE Users SET IsAdmin = @admin WHERE UserId = @id", conn);
+                cmd.Parameters.AddWithValue("@admin", isAdmin);
+                cmd.Parameters.AddWithValue("@id", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public static void DeleteUser(int userId)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                var cmd = new SqlCommand("DELETE FROM Users WHERE UserId = @id", conn);
+                cmd.Parameters.AddWithValue("@id", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }
