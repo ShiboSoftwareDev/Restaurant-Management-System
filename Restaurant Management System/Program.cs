@@ -26,7 +26,7 @@ namespace Restaurant_Management_System
 
             if (loginSuccess)
             {
-                Application.Run(new Form1());
+                Application.Run(new MainForm());
             }
         }
 

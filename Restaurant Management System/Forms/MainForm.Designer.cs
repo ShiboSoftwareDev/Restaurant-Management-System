@@ -1,6 +1,6 @@
 ﻿namespace Restaurant_Management_System
 {
-    partial class Form1
+    partial class MainForm
     {
         private System.ComponentModel.IContainer components = null;
 
@@ -156,7 +156,7 @@
             this.serversPanel.TabIndex = 4;
             this.serversPanel.Visible = false;
             // 
-            // Form1
+            // MainForm 
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -165,7 +165,7 @@
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Text = "Restaurant Management System";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -177,17 +177,17 @@
 
         #endregion
 
-        private System.Windows.Forms.MenuStrip menuStrip1;
-        private System.Windows.Forms.ToolStripMenuItem ordersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem menuToolStripMenuItem;
-        private System.Windows.Forms.Panel mainPanel;
-        private System.Windows.Forms.Panel tablesPanel;
-        private System.Windows.Forms.Panel itemsPanel;
-        private System.Windows.Forms.ToolStripMenuItem usersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem clientsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem serversToolStripMenuItem;
-        private System.Windows.Forms.Panel usersPanel;
-        private System.Windows.Forms.Panel clientsPanel;
-        private System.Windows.Forms.Panel serversPanel;
+        public System.Windows.Forms.MenuStrip menuStrip1;
+        public System.Windows.Forms.ToolStripMenuItem ordersToolStripMenuItem;
+        public System.Windows.Forms.ToolStripMenuItem menuToolStripMenuItem;
+        public System.Windows.Forms.Panel mainPanel;
+        public System.Windows.Forms.Panel tablesPanel;
+        public System.Windows.Forms.Panel itemsPanel;
+        public System.Windows.Forms.ToolStripMenuItem usersToolStripMenuItem;
+        public System.Windows.Forms.ToolStripMenuItem clientsToolStripMenuItem;
+        public System.Windows.Forms.ToolStripMenuItem serversToolStripMenuItem;
+        public System.Windows.Forms.Panel usersPanel;
+        public System.Windows.Forms.Panel clientsPanel;
+        public System.Windows.Forms.Panel serversPanel;
     }
 }
