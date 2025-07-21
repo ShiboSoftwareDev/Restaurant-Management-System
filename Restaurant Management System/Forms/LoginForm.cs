@@ -9,6 +9,7 @@ namespace Restaurant_Management_System
     public partial class LoginForm : Form
     {
         private string connectionString = "Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;";
+        private ErrorProvider errorProvider = new ErrorProvider();
 
         public LoginForm()
         {
@@ -21,23 +22,30 @@ namespace Restaurant_Management_System
             string username = usernameTextBox.Text.Trim();
             string password = passwordTextBox.Text;
 
-            // Input validation
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            errorProvider.Clear();
+            bool hasError = false;
+            if (string.IsNullOrEmpty(username))
             {
-                MessageBox.Show("Please enter both username and password.", "Input Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                errorProvider.SetError(usernameTextBox, "Username is required.");
+                hasError = true;
             }
-            if (username.Length < 4)
+            else if (username.Length < 4)
             {
-                MessageBox.Show("Username must be at least 4 characters.", "Input Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                errorProvider.SetError(usernameTextBox, "Username must be at least 4 characters.");
+                hasError = true;
             }
-            if (password.Length < 8 || !HasNumber(password) || !HasUpper(password))
+            if (string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Password must be at least 8 characters, contain a number and a capital letter.", "Input Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                errorProvider.SetError(passwordTextBox, "Password is required.");
+                hasError = true;
+            }
+            else if (password.Length < 8 || !HasNumber(password) || !HasUpper(password))
+            {
+                errorProvider.SetError(passwordTextBox, "Password must be at least 8 characters, contain a number and a capital letter.");
+                hasError = true;
+            }
+            if (hasError)
+            {
                 return;
             }
 

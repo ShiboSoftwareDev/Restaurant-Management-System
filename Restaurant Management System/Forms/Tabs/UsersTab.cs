@@ -38,25 +38,37 @@ namespace Restaurant_Management_System
             var usernameBox = new TextBox { Width = 200, Font = new Font("Segoe UI", 12), PlaceholderText = "Username" };
             var passwordBox = new TextBox { Width = 200, Font = new Font("Segoe UI", 12), PlaceholderText = "Password", PasswordChar = '*' };
             var isAdminCheck = new CheckBox { Text = "Is Admin", Font = new Font("Segoe UI", 12), AutoSize = true, Padding = new Padding(10, 8, 0, 0) };
+            var errorProvider = new ErrorProvider();
 
             var addUserBtn = new Button { Text = "Add User", Height = 44, Width = 140, BackColor = Color.FromArgb(0, 120, 215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             addUserBtn.FlatAppearance.BorderSize = 0;
             addUserBtn.Click += (s, e) => {
                 string username = usernameBox.Text.Trim();
                 string password = passwordBox.Text;
-                if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                errorProvider.Clear();
+                bool hasError = false;
+                if (string.IsNullOrWhiteSpace(username))
                 {
-                    MessageBox.Show("Username and password cannot be empty.");
-                    return;
+                    errorProvider.SetError(usernameBox, "Username is required.");
+                    hasError = true;
                 }
-                if (username.Length < 4)
+                else if (username.Length < 4)
                 {
-                    MessageBox.Show("Username must be at least 4 characters.");
-                    return;
+                    errorProvider.SetError(usernameBox, "Username must be at least 4 characters.");
+                    hasError = true;
                 }
-                if (password.Length < 8 || !HasNumber(password) || !HasUpper(password))
+                if (string.IsNullOrWhiteSpace(password))
                 {
-                    MessageBox.Show("Password must be at least 8 characters, contain a number and a capital letter.");
+                    errorProvider.SetError(passwordBox, "Password is required.");
+                    hasError = true;
+                }
+                else if (password.Length < 8 || !HasNumber(password) || !HasUpper(password))
+                {
+                    errorProvider.SetError(passwordBox, "Password must be at least 8 characters, contain a number and a capital letter.");
+                    hasError = true;
+                }
+                if (hasError)
+                {
                     return;
                 }
                 string hashedPassword = SecurityHelper.ComputeSha256Hash(password);
