@@ -23,6 +23,7 @@ namespace Restaurant_Management_System
             usersToolStripMenuItem.Click += (s, e) => ShowSection("Users");
             clientsToolStripMenuItem.Click += (s, e) => ShowSection("Clients");
             serversToolStripMenuItem.Click += (s, e) => ShowSection("Servers");
+            aboutToolStripMenuItem.Click += (s, e) => ShowSection("About");
             
             ShowSection("Orders");
         }
@@ -31,6 +32,7 @@ namespace Restaurant_Management_System
         {
             tablesPanel.Visible = false;
             itemsPanel.Visible = false;
+            aboutPanel.Visible = false;
             usersPanel.Visible = false;
             clientsPanel.Visible = false;
             serversPanel.Visible = false;
@@ -54,6 +56,11 @@ namespace Restaurant_Management_System
             {
                 if (clientsPanel.Controls.Count == 0) SetupClientsPanel();
                 clientsPanel.Visible = true;
+            }
+            else if (section == "About")
+            {
+                if (aboutPanel.Controls.Count == 0) SetupAboutPanel();
+                aboutPanel.Visible = true;
             }
             else if (section == "Servers")
             {
