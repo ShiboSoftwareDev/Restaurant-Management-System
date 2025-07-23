@@ -31,8 +31,9 @@ namespace Restaurant_Management_System
             usersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "User ID", DataPropertyName = "UserId", Width = 80 });
             usersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Username", DataPropertyName = "Username", Width = 180 });
             usersGrid.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Admin", DataPropertyName = "IsAdmin", Width = 80 });
+            usersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Locked", DataPropertyName = "IsLocked", Width = 80 });
 
-            LoadUsers(usersGrid);
+            usersGrid.DataSource = Restaurant_Management_System.DAL.UsersDAL.GetAllUsers();
 
             var addUserPanel = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 60, Padding = new Padding(0, 10, 0, 0), FlowDirection = FlowDirection.LeftToRight };
             var usernameBox = new TextBox { Width = 200, Font = new Font("Segoe UI", 12), PlaceholderText = "Username" };
@@ -40,8 +41,7 @@ namespace Restaurant_Management_System
             var isAdminCheck = new CheckBox { Text = "Is Admin", Font = new Font("Segoe UI", 12), AutoSize = true, Padding = new Padding(10, 8, 0, 0) };
             var errorProvider = new ErrorProvider();
 
-            var addUserBtn = new Button { Text = "Add User", Height = 44, Width = 140, BackColor = Color.FromArgb(0, 120, 215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
-            addUserBtn.FlatAppearance.BorderSize = 0;
+            var addUserBtn = new Button { Text = "Add User", Height = 44, Width = 100, BackColor = Color.FromArgb(0, 120, 215), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             addUserBtn.Click += (s, e) => {
                 string username = usernameBox.Text.Trim();
                 string password = passwordBox.Text;
@@ -102,31 +102,17 @@ namespace Restaurant_Management_System
 
             // Allow toggling admin status in grid with single click
             usersGrid.CellContentClick += (s, e) => {
-                if (e.RowIndex >= 0 && e.ColumnIndex == 2) // Admin column
+                if (e.RowIndex >= 0 && e.ColumnIndex == 2) // Admin column only
                 {
                     var row = usersGrid.Rows[e.RowIndex];
-                    var data = row.DataBoundItem;
-                    Restaurant_Management_System.Models.User user = null;
-                    if (data is System.Data.DataRowView drv && drv.Row.Table.Columns.Contains("UserId"))
-                    {
-                        user = new Restaurant_Management_System.Models.User
-                        {
-                            UserId = (int)drv["UserId"],
-                            Username = drv["Username"].ToString(),
-                            IsAdmin = (bool)drv["IsAdmin"]
-                        };
-                    }
-                    else if (data is Restaurant_Management_System.Models.User u)
-                    {
-                        user = u;
-                    }
+                    var user = row.DataBoundItem as Restaurant_Management_System.Models.User;
                     if (user != null)
                     {
                         bool newIsAdmin = !user.IsAdmin;
                         try
                         {
                             Restaurant_Management_System.DAL.UsersDAL.UpdateUserAdmin(user.UserId, newIsAdmin);
-                            LoadUsers(usersGrid);
+                            usersGrid.DataSource = Restaurant_Management_System.DAL.UsersDAL.GetAllUsers();
                         }
                         catch (Exception ex)
                         {
@@ -136,7 +122,7 @@ namespace Restaurant_Management_System
                 }
             };
 
-            var deleteUserBtn = new Button { Text = "Delete Selected", Height = 44, Width = 160, BackColor = Color.FromArgb(220, 53, 69), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
+            var deleteUserBtn = new Button { Text = "Delete", Height = 44, Width = 100, BackColor = Color.FromArgb(220, 53, 69), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
             deleteUserBtn.FlatAppearance.BorderSize = 0;
             deleteUserBtn.Click += (s, e) => {
                 if (usersGrid.SelectedRows.Count > 0)
@@ -156,12 +142,39 @@ namespace Restaurant_Management_System
                             try
                             {
                                 Restaurant_Management_System.DAL.UsersDAL.DeleteUser(userId);
-                                LoadUsers(usersGrid);
+                                usersGrid.DataSource = Restaurant_Management_System.DAL.UsersDAL.GetAllUsers();
                             }
                             catch (Exception ex)
                             {
                                 MessageBox.Show("Error deleting user: " + ex.Message);
                             }
+                        }
+                    }
+                }
+            };
+
+            var unlockUserBtn = new Button { Text = "Unlock", Height = 44, Width = 100, BackColor = Color.FromArgb(40, 167, 69), ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 12, FontStyle.Bold), Cursor = Cursors.Hand };
+            unlockUserBtn.FlatAppearance.BorderSize = 0;
+            unlockUserBtn.Click += (s, e) => {
+                if (usersGrid.SelectedRows.Count > 0)
+                {
+                    var row = usersGrid.SelectedRows[0];
+                    var data = row.DataBoundItem;
+                    int userId = -1;
+                    if (data is System.Data.DataRowView drv && drv.Row.Table.Columns.Contains("UserId"))
+                        userId = (int)drv["UserId"];
+                    else if (data is Restaurant_Management_System.Models.User u)
+                        userId = u.UserId;
+                    if (userId > 0)
+                    {
+                        try
+                        {
+                            Restaurant_Management_System.DAL.UsersDAL.UpdateUserLocked(userId, false);
+                            usersGrid.DataSource = Restaurant_Management_System.DAL.UsersDAL.GetAllUsers();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error unlocking user: " + ex.Message);
                         }
                     }
                 }
@@ -174,12 +187,16 @@ namespace Restaurant_Management_System
             addUserPanel.Controls.Add(isAdminCheck);
             addUserPanel.Controls.Add(addUserBtn);
             addUserPanel.Controls.Add(deleteUserBtn);
+            addUserPanel.Controls.Add(unlockUserBtn);
 
             usersPanel.Controls.Add(addUserPanel);
             usersPanel.Controls.Add(usersGrid);
             usersPanel.Controls.Add(label);
         }
 
+        // ...existing code...
+
+        // Ensure IsLocked is loaded in the DataTable for grid binding
         // ...existing code...
                 
     }
