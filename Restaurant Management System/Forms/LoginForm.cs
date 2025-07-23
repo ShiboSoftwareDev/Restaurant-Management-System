@@ -56,23 +56,117 @@ namespace Restaurant_Management_System
             try
             {
                 Cursor.Current = Cursors.WaitCursor;
-
-                // Hash the password before checking
                 string hashedPassword = SecurityHelper.ComputeSha256Hash(password);
-                bool isValidUser = ValidateCredentials(username, hashedPassword);
 
-                if (isValidUser)
+                using (var connection = new SqlConnection(connectionString))
                 {
-                    CurrentUsername = username;
-                    this.DialogResult = DialogResult.OK;
-                    this.Close();
-                }
-                else
-                {
-                    MessageBox.Show("Invalid username or password.", "Login Failed",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    passwordTextBox.Text = "";
-                    passwordTextBox.Focus();
+                    connection.Open();
+                    // Get user lock info
+                    var cmd = new SqlCommand("SELECT UserId, IsLocked, LastLoginAttempt, LoginAttempts FROM Users WHERE Username = @user", connection);
+                    cmd.Parameters.AddWithValue("@user", username);
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    if (!reader.HasRows)
+                    {
+                        reader.Close();
+                        MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        passwordTextBox.Text = "";
+                        passwordTextBox.Focus();
+                        return;
+                    }
+                    reader.Read();
+                    int userId = reader.GetInt32(0);
+                    bool isLocked = reader.GetBoolean(1);
+                    object lastLoginObj = reader.IsDBNull(2) ? null : reader.GetValue(2);
+                    DateTime? lastLoginAttempt = lastLoginObj == null ? (DateTime?)null : Convert.ToDateTime(lastLoginObj);
+                    int loginAttempts = reader.GetInt32(3);
+                    reader.Close();
+
+                    // Unlock if last attempt is over a day ago
+                    if (lastLoginAttempt.HasValue && (DateTime.Now - lastLoginAttempt.Value).TotalDays >= 1)
+                    {
+                        var resetCmd = new SqlCommand("UPDATE Users SET IsLocked = 0, LoginAttempts = 0 WHERE UserId = @id", connection);
+                        resetCmd.Parameters.AddWithValue("@id", userId);
+                        resetCmd.ExecuteNonQuery();
+                        isLocked = false;
+                        loginAttempts = 0;
+                    }
+
+                    // If locked, check lock duration
+                    if (isLocked)
+                    {
+                        double minutesLocked = 0;
+                        // Lock duration depends on the lock level at the time of locking, not current attempts
+                        // So, calculate lock duration based on attempts at time of lock (lastLoginAttempt)
+                        // If just unlocked, next failed attempt should escalate lock
+                        if (loginAttempts >= 12)
+                            minutesLocked = 24 * 60; // 1 day
+                        else if (loginAttempts >= 9)
+                            minutesLocked = 30;
+                        else if (loginAttempts >= 6)
+                            minutesLocked = 5;
+                        else if (loginAttempts >= 3)
+                            minutesLocked = 1;
+
+                        if (lastLoginAttempt.HasValue && (DateTime.Now - lastLoginAttempt.Value).TotalMinutes < minutesLocked)
+                        {
+                            MessageBox.Show($"Account locked. Try again in {Math.Ceiling(minutesLocked - (DateTime.Now - lastLoginAttempt.Value).TotalMinutes)} minutes.", "Account Locked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return;
+                        }
+                        else
+                        {
+                            // Unlock after lock period, but keep attempts so next fail escalates lock
+                            var unlockCmd = new SqlCommand("UPDATE Users SET IsLocked = 0 WHERE UserId = @id", connection);
+                            unlockCmd.Parameters.AddWithValue("@id", userId);
+                            unlockCmd.ExecuteNonQuery();
+                            isLocked = false;
+                            // Do not reset loginAttempts here
+                        }
+                    }
+
+                    // Validate credentials
+                    var loginCmd = new SqlCommand("SELECT COUNT(*) FROM Users WHERE Username = @user AND PasswordHash = @pass", connection);
+                    loginCmd.Parameters.AddWithValue("@user", username);
+                    loginCmd.Parameters.AddWithValue("@pass", hashedPassword);
+                    int result = (int)loginCmd.ExecuteScalar();
+
+                    if (result > 0)
+                    {
+                        // Success: reset attempts and unlock
+                        var successCmd = new SqlCommand("UPDATE Users SET IsLocked = 0, LoginAttempts = 0, LastLoginAttempt = @now WHERE UserId = @id", connection);
+                        successCmd.Parameters.AddWithValue("@id", userId);
+                        successCmd.Parameters.AddWithValue("@now", DateTime.Now);
+                        successCmd.ExecuteNonQuery();
+                        CurrentUsername = username;
+                        this.DialogResult = DialogResult.OK;
+                        this.Close();
+                    }
+                    else
+                    {
+                        // Failed: increment attempts, set lock if needed
+                        loginAttempts++;
+                        bool shouldLock = false;
+                        double lockMinutes = 0;
+                        if (loginAttempts == 3) { shouldLock = true; lockMinutes = 1; }
+                        else if (loginAttempts == 6) { shouldLock = true; lockMinutes = 5; }
+                        else if (loginAttempts == 9) { shouldLock = true; lockMinutes = 30; }
+                        else if (loginAttempts >= 12) { shouldLock = true; lockMinutes = 24 * 60; }
+                        var failCmd = new SqlCommand("UPDATE Users SET LoginAttempts = @attempts, LastLoginAttempt = @now, IsLocked = @locked WHERE UserId = @id", connection);
+                        failCmd.Parameters.AddWithValue("@id", userId);
+                        failCmd.Parameters.AddWithValue("@attempts", loginAttempts);
+                        failCmd.Parameters.AddWithValue("@now", DateTime.Now);
+                        failCmd.Parameters.AddWithValue("@locked", shouldLock ? 1 : 0);
+                        failCmd.ExecuteNonQuery();
+                        if (shouldLock)
+                        {
+                            MessageBox.Show($"Account locked due to multiple failed attempts. Try again in {lockMinutes} minutes.", "Account Locked", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        passwordTextBox.Text = "";
+                        passwordTextBox.Focus();
+                    }
                 }
             }
             catch (SqlException ex)
