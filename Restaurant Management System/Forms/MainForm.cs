@@ -41,7 +41,8 @@ namespace Restaurant_Management_System
             
             if (section == "Orders")
             {
-                if (tablesPanel.Controls.Count == 0) SetupTablesPanel();
+                // if (tablesPanel.Controls.Count == 0) SetupTablesPanel();
+                SetupTablesPanel();
                 tablesPanel.Visible = true;
             }
             else if (section == "Items")
@@ -51,12 +52,13 @@ namespace Restaurant_Management_System
             }
             else if (section == "Users")
             {
-                if (usersPanel.Controls.Count == 0) SetupUsersPanel();
+                // if (usersPanel.Controls.Count == 0) SetupUsersPanel();
                 usersPanel.Visible = true;
             }
             else if (section == "Clients")
             {
-                if (clientsPanel.Controls.Count == 0) SetupClientsPanel();
+                // if (clientsPanel.Controls.Count == 0) SetupClientsPanel();
+                SetupClientsPanel();
                 clientsPanel.Visible = true;
             }
             else if (section == "About")
@@ -66,7 +68,8 @@ namespace Restaurant_Management_System
             }
             else if (section == "Servers")
             {
-                if (serversPanel.Controls.Count == 0) SetupServersPanel();
+                // if (serversPanel.Controls.Count == 0) SetupServersPanel();
+                SetupServersPanel();
                 serversPanel.Visible = true;
             }
             else if (section == "Inquiry")
@@ -136,39 +139,6 @@ namespace Restaurant_Management_System
         //     tablesPanel.Controls.Add(tablesGrid);
         //     tablesPanel.Controls.Add(label);
         // }
-
-        private void RefreshTablesGrid()
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    conn.Open();
-                    var adapter = new SqlDataAdapter(@"
-                        SELECT t.TableId AS TableNumber, c.Name AS ClientName, s.Name AS Server, 
-                               o.OrderStatus AS Status, 
-                               (SELECT STRING_AGG(mi.Name, ', ') 
-                                FROM OrderItems oi
-                                JOIN MenuItems mi ON oi.ItemId = mi.ItemId 
-                                WHERE oi.OrderId = o.OrderId) AS OrderSummary,
-                               (SELECT SUM(mi.Price * oi.Quantity) 
-                                FROM OrderItems oi 
-                                JOIN MenuItems mi ON oi.ItemId = mi.ItemId 
-                                WHERE oi.OrderId = o.OrderId) AS TotalPrice
-                        FROM Tables t
-                        LEFT JOIN Orders o ON t.TableId = o.TableId
-                        LEFT JOIN Clients c ON o.ClientId = c.ClientId
-                        LEFT JOIN Servers s ON o.ServerId = s.ServerId", conn);
-                    var table = new DataTable();
-                    adapter.Fill(table);
-                    tablesGrid.DataSource = table;
-                }
-                catch (Exception ex) 
-                { 
-                    MessageBox.Show("Error loading orders: " + ex.Message); 
-                }
-            }
-        }
 
         private DataGridView itemsGrid;
         private Button addItemButton;

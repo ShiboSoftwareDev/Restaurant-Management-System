@@ -7,61 +7,85 @@ namespace Restaurant_Management_System.DAL
 {
     public static class ServersDAL
     {
+        /* -----------------------------------------------------------
+         *  READ
+         * --------------------------------------------------------- */
         public static DataTable GetServers(string connectionString)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            var dt = new DataTable();
+            using var conn = new SqlConnection(connectionString);
+            try
             {
-                var dt = new DataTable();
-                try
-                {
-                    conn.Open();
-                    var cmd = new SqlCommand("SELECT ServerId, Name FROM Servers", conn);
-                    using (var da = new SqlDataAdapter(cmd))
-                    {
-                        da.Fill(dt);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error loading servers: " + ex.Message);
-                }
-                return dt;
+                conn.Open();
+                var cmd = new SqlCommand(
+                    "SELECT ServerId, Name FROM Servers ORDER BY Name", conn);
+                new SqlDataAdapter(cmd).Fill(dt);
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading servers: " + ex.Message);
+            }
+            return dt;
         }
 
+        /* -----------------------------------------------------------
+         *  CREATE
+         * --------------------------------------------------------- */
         public static void AddServer(string connectionString, string name)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using var conn = new SqlConnection(connectionString);
+            try
             {
-                try
-                {
-                    conn.Open();
-                    var cmd = new SqlCommand("INSERT INTO Servers (Name) VALUES (@name)", conn);
-                    cmd.Parameters.AddWithValue("@name", name);
-                    cmd.ExecuteNonQuery();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error adding server: " + ex.Message);
-                }
+                conn.Open();
+                var cmd = new SqlCommand(
+                    "INSERT INTO Servers (Name) VALUES (@name)", conn);
+                cmd.Parameters.AddWithValue("@name", name);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error adding server: " + ex.Message);
             }
         }
 
+        /* -----------------------------------------------------------
+         *  DELETE  (now clears references in Orders first)
+         * --------------------------------------------------------- */
         public static void DeleteServer(string connectionString, int serverId)
         {
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            using var conn = new SqlConnection(connectionString);
+            conn.Open();
+
+            using var tx = conn.BeginTransaction();
+            try
             {
-                try
+                /* 1️⃣  Clear references in Orders                */
+                var clear = new SqlCommand(
+                    "UPDATE Orders SET ServerId = NULL WHERE ServerId = @id",
+                    conn, tx);
+                clear.Parameters.AddWithValue("@id", serverId);
+                clear.ExecuteNonQuery();
+
+                /* 2️⃣  Delete the server row                     */
+                var del = new SqlCommand(
+                    "DELETE FROM Servers WHERE ServerId = @id",
+                    conn, tx);
+                del.Parameters.AddWithValue("@id", serverId);
+                int rows = del.ExecuteNonQuery();
+
+                if (rows == 0)
                 {
-                    conn.Open();
-                    var cmd = new SqlCommand("DELETE FROM Servers WHERE ServerId = @id", conn);
-                    cmd.Parameters.AddWithValue("@id", serverId);
-                    cmd.ExecuteNonQuery();
+                    tx.Rollback();
+                    MessageBox.Show("Server not found or already deleted.");
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error deleting server: " + ex.Message);
-                }
+
+                tx.Commit();
+            }
+            catch (Exception ex)
+            {
+                tx.Rollback();
+                MessageBox.Show("Error deleting server: " + ex.Message);
             }
         }
     }
