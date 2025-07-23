@@ -24,10 +24,12 @@
             this.clientsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.serversToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.inquiryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainPanel = new System.Windows.Forms.Panel();
             this.tablesPanel = new System.Windows.Forms.Panel();
             this.itemsPanel = new System.Windows.Forms.Panel();
             this.aboutPanel = new System.Windows.Forms.Panel();
+            this.inquiryPanel = new System.Windows.Forms.Panel();
             this.usersPanel = new System.Windows.Forms.Panel();
             this.clientsPanel = new System.Windows.Forms.Panel();
             this.serversPanel = new System.Windows.Forms.Panel();
@@ -46,7 +48,8 @@
             this.usersToolStripMenuItem,
             this.clientsToolStripMenuItem,
             this.serversToolStripMenuItem,
-            this.aboutToolStripMenuItem
+            this.aboutToolStripMenuItem,
+            this.inquiryToolStripMenuItem
             });
             // 
             // aboutToolStripMenuItem
@@ -54,6 +57,12 @@
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(70, 25);
             this.aboutToolStripMenuItem.Text = "About";
+            // 
+            // inquiryToolStripMenuItem
+            // 
+            this.inquiryToolStripMenuItem.Name = "inquiryToolStripMenuItem";
+            this.inquiryToolStripMenuItem.Size = new System.Drawing.Size(70, 25);
+            this.inquiryToolStripMenuItem.Text = "Inquiry";
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(5, 2, 0, 2);
@@ -100,6 +109,7 @@
             this.mainPanel.Controls.Add(this.clientsPanel);
             this.mainPanel.Controls.Add(this.serversPanel);
             this.mainPanel.Controls.Add(this.aboutPanel);
+            this.mainPanel.Controls.Add(this.inquiryPanel);
             this.mainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainPanel.Location = new System.Drawing.Point(0, 29);
             this.mainPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
@@ -131,7 +141,7 @@
             this.itemsPanel.TabIndex = 1;
             this.itemsPanel.Visible = false;
             // 
-            // abouitPanel 
+            // aboutPanel 
             // 
             this.aboutPanel.BackColor = System.Drawing.Color.White;
             this.aboutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -142,6 +152,18 @@
             this.aboutPanel.Size = new System.Drawing.Size(1225, 609);
             this.aboutPanel.TabIndex = 5;
             this.aboutPanel.Visible = false;
+            // 
+            // inquiryPanel 
+            // 
+            this.inquiryPanel.BackColor = System.Drawing.Color.White;
+            this.inquiryPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.inquiryPanel.Location = new System.Drawing.Point(0, 0);
+            this.inquiryPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.inquiryPanel.Name = "inquiryPanel";
+            this.inquiryPanel.Padding = new System.Windows.Forms.Padding(35, 30, 35, 30);
+            this.inquiryPanel.Size = new System.Drawing.Size(1225, 609);
+            this.inquiryPanel.TabIndex = 5;
+            this.inquiryPanel.Visible = false;
             // 
             // usersPanel
             // 
@@ -207,10 +229,12 @@
         public System.Windows.Forms.Panel tablesPanel;
         public System.Windows.Forms.Panel itemsPanel;
         public System.Windows.Forms.Panel aboutPanel;
+        public System.Windows.Forms.Panel inquiryPanel;
         public System.Windows.Forms.ToolStripMenuItem usersToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem clientsToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem serversToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        public System.Windows.Forms.ToolStripMenuItem inquiryToolStripMenuItem;
         public System.Windows.Forms.Panel usersPanel;
         public System.Windows.Forms.Panel clientsPanel;
         public System.Windows.Forms.Panel serversPanel;

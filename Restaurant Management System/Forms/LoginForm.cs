@@ -8,6 +8,10 @@ namespace Restaurant_Management_System
 {
     public partial class LoginForm : Form
     {
+        // Store the current logged-in username for use in other forms
+        // Store the current logged-in username for use in other forms
+        public static string CurrentUsername { get; private set; }
+    
         private string connectionString = "Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;";
         private ErrorProvider errorProvider = new ErrorProvider();
 
@@ -59,6 +63,7 @@ namespace Restaurant_Management_System
 
                 if (isValidUser)
                 {
+                    CurrentUsername = username;
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
