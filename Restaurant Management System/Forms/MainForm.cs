@@ -571,24 +571,24 @@ namespace Restaurant_Management_System
         //     serversPanel.Controls.Add(label);
         // }
         
-        private void LoadServers(DataGridView grid)
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    conn.Open();
-                    var adapter = new SqlDataAdapter("SELECT ServerId, Name FROM Servers", conn);
-                    var table = new DataTable();
-                    adapter.Fill(table);
-                    grid.DataSource = table;
-                }
-                catch (Exception ex) 
-                { 
-                    MessageBox.Show("Error loading servers: " + ex.Message); 
-                }
-            }
-        }
+        // private void LoadServers(DataGridView grid)
+        // {
+        //     using (SqlConnection conn = new SqlConnection(connectionString))
+        //     {
+        //         try
+        //         {
+        //             conn.Open();
+        //             var adapter = new SqlDataAdapter("SELECT ServerId, Name FROM Servers", conn);
+        //             var table = new DataTable();
+        //             adapter.Fill(table);
+        //             grid.DataSource = table;
+        //         }
+        //         catch (Exception ex) 
+        //         { 
+        //             MessageBox.Show("Error loading servers: " + ex.Message); 
+        //         }
+        //     }
+        // }
 
         // Loyalty discount calculation
         private decimal CalculateTotalWithDiscount(int clientId, decimal total)

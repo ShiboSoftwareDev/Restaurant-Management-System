@@ -1,55 +1,90 @@
 using System;
 using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Windows.Forms;
+using Microsoft.Data.SqlClient;
 
 namespace Restaurant_Management_System.DAL
 {
     public static class ServersDAL
     {
         /* -----------------------------------------------------------
-         *  READ
+         *  READ – only active (IsDeleted = 0)
          * --------------------------------------------------------- */
         public static DataTable GetServers(string connectionString)
         {
             var dt = new DataTable();
+
             using var conn = new SqlConnection(connectionString);
             try
             {
                 conn.Open();
                 var cmd = new SqlCommand(
-                    "SELECT ServerId, Name FROM Servers ORDER BY Name", conn);
+                    "SELECT ServerId, Name " +
+                    "FROM   Servers " +
+                    "WHERE  IsDeleted = 0 " +
+                    "ORDER  BY Name", conn);
+
                 new SqlDataAdapter(cmd).Fill(dt);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error loading servers: " + ex.Message);
             }
+
             return dt;
         }
 
         /* -----------------------------------------------------------
-         *  CREATE
+         *  CREATE  (with restore‑if‑soft‑deleted logic)
          * --------------------------------------------------------- */
         public static void AddServer(string connectionString, string name)
         {
             using var conn = new SqlConnection(connectionString);
+            conn.Open();
+
+            using var tx = conn.BeginTransaction();
             try
             {
-                conn.Open();
-                var cmd = new SqlCommand(
-                    "INSERT INTO Servers (Name) VALUES (@name)", conn);
-                cmd.Parameters.AddWithValue("@name", name);
-                cmd.ExecuteNonQuery();
+                /* 1️⃣  Does a soft‑deleted row with this name exist? */
+                var reviveCheck = new SqlCommand(
+                    "SELECT ServerId " +
+                    "FROM   Servers " +
+                    "WHERE  Name = @name AND IsDeleted = 1", conn, tx);
+                reviveCheck.Parameters.AddWithValue("@name", name);
+
+                var idObj = reviveCheck.ExecuteScalar();
+
+                if (idObj != null)          // Found a soft‑deleted match – revive it
+                {
+                    var reviveCmd = new SqlCommand(
+                        "UPDATE Servers " +
+                        "SET    IsDeleted = 0 " +
+                        "WHERE  ServerId = @id", conn, tx);
+                    reviveCmd.Parameters.AddWithValue("@id", (int)idObj);
+                    reviveCmd.ExecuteNonQuery();
+
+                    tx.Commit();
+                    return;
+                }
+
+                /* 2️⃣  Otherwise, insert a brand‑new row */
+                var insert = new SqlCommand(
+                    "INSERT INTO Servers (Name, IsDeleted) VALUES (@name, 0)",
+                    conn, tx);
+                insert.Parameters.AddWithValue("@name", name);
+                insert.ExecuteNonQuery();
+
+                tx.Commit();
             }
             catch (Exception ex)
             {
+                tx.Rollback();
                 MessageBox.Show("Error adding server: " + ex.Message);
             }
         }
 
         /* -----------------------------------------------------------
-         *  DELETE  (now clears references in Orders first)
+         *  SOFT DELETE – flag row & clear references
          * --------------------------------------------------------- */
         public static void DeleteServer(string connectionString, int serverId)
         {
@@ -59,21 +94,22 @@ namespace Restaurant_Management_System.DAL
             using var tx = conn.BeginTransaction();
             try
             {
-                /* 1️⃣  Clear references in Orders                */
+                /* 1️⃣  Clear references in Orders */
                 var clear = new SqlCommand(
-                    "UPDATE Orders SET ServerId = NULL WHERE ServerId = @id",
-                    conn, tx);
+                    "UPDATE Orders " +
+                    "SET    ServerId = NULL " +
+                    "WHERE  ServerId = @id", conn, tx);
                 clear.Parameters.AddWithValue("@id", serverId);
                 clear.ExecuteNonQuery();
 
-                /* 2️⃣  Delete the server row                     */
+                /* 2️⃣  Flag the server as deleted */
                 var del = new SqlCommand(
-                    "DELETE FROM Servers WHERE ServerId = @id",
-                    conn, tx);
+                    "UPDATE Servers " +
+                    "SET    IsDeleted = 1 " +
+                    "WHERE  ServerId = @id AND IsDeleted = 0", conn, tx);
                 del.Parameters.AddWithValue("@id", serverId);
-                int rows = del.ExecuteNonQuery();
 
-                if (rows == 0)
+                if (del.ExecuteNonQuery() == 0)
                 {
                     tx.Rollback();
                     MessageBox.Show("Server not found or already deleted.");
