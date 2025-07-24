@@ -52,7 +52,7 @@ namespace Restaurant_Management_System
             }
             else if (section == "Users")
             {
-                // if (usersPanel.Controls.Count == 0) SetupUsersPanel();
+                if (usersPanel.Controls.Count == 0) SetupUsersPanel();
                 usersPanel.Visible = true;
             }
             else if (section == "Clients")
@@ -68,8 +68,7 @@ namespace Restaurant_Management_System
             }
             else if (section == "Servers")
             {
-                // if (serversPanel.Controls.Count == 0) SetupServersPanel();
-                SetupServersPanel();
+                if (serversPanel.Controls.Count == 0) SetupServersPanel();
                 serversPanel.Visible = true;
             }
             else if (section == "Inquiry")
@@ -416,24 +415,24 @@ namespace Restaurant_Management_System
         //     usersPanel.Controls.Add(label);
         // }
         
-        public void LoadUsers(DataGridView grid)
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    conn.Open();
-                    var adapter = new SqlDataAdapter("SELECT UserId, Username, IsAdmin FROM Users", conn);
-                    var table = new DataTable();
-                    adapter.Fill(table);
-                    grid.DataSource = table;
-                }
-                catch (Exception ex) 
-                { 
-                    MessageBox.Show("Error loading users: " + ex.Message); 
-                }
-            }
-        }
+        // public void LoadUsers(DataGridView grid)
+        // {
+        //     using (SqlConnection conn = new SqlConnection(connectionString))
+        //     {
+        //         try
+        //         {
+        //             conn.Open();
+        //             var adapter = new SqlDataAdapter("SELECT UserId, Username, IsAdmin FROM Users", conn);
+        //             var table = new DataTable();
+        //             adapter.Fill(table);
+        //             grid.DataSource = table;
+        //         }
+        //         catch (Exception ex) 
+        //         { 
+        //             MessageBox.Show("Error loading users: " + ex.Message); 
+        //         }
+        //     }
+        // }
 
         // Client management
         // private void SetupClientsPanel()
