@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
+using Microsoft.Data.SqlClient;
 using Restaurant_Management_System.DAL;
 
 namespace Restaurant_Management_System
@@ -9,10 +12,11 @@ namespace Restaurant_Management_System
     public partial class MainForm : Form
     {
         /* -----------------------------------------------------------
-         *  FIELDS
+         *  UI FIELDS
          * --------------------------------------------------------- */
         private DataGridView ordersGrid;
-        private FlowLayoutPanel footer;
+        private NumericUpDown tableBox;
+        private TextBox       clientBox;
 
         /* -----------------------------------------------------------
          *  TAB SETUP
@@ -34,9 +38,7 @@ namespace Restaurant_Management_System
             BuildGrid();
             BuildFooter();
 
-            ordersPanel.Controls.Add(footer);
-            ordersPanel.Controls.Add(ordersGrid);
-            ordersPanel.Controls.Add(header);
+            ordersPanel.Controls.AddRange(new Control[] { footer, ordersGrid, header });
 
             RefreshGrid();
         }
@@ -72,43 +74,48 @@ namespace Restaurant_Management_System
 
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "OrderId", DataPropertyName = "OrderId", Visible = false });
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Table #", DataPropertyName = "TableNumber", Width = 80 });
-            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Client", DataPropertyName = "ClientName", Width = 180 });
+            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Client",  DataPropertyName = "ClientName",  Width = 160 });
+
+            ordersGrid.Columns.Add(MakeBtn("AssignBtn",  "Assign Srv", 90));      // before Server
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Server", DataPropertyName = "Server", Width = 120 });
-            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Status", DataPropertyName = "Status", Width = 120 });
-            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Items", DataPropertyName = "OrderItems", Width = 220 });
+
+            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Status", DataPropertyName = "Status", Width = 100 });
+
+            ordersGrid.Columns.Add(MakeBtn("AddItemsBtn","➕ Items",   90));      // before Items
+            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Items",  DataPropertyName = "OrderItems", Width = 260 });
+
+            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "DiscountFlag", HeaderText = "Discount", DataPropertyName = "DiscountFlag", Width = 90 });
+
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name               = "Total",
-                HeaderText         = "Total",
-                DataPropertyName   = "TotalPrice",
-                Width              = 100,
-                DefaultCellStyle   = new DataGridViewCellStyle { Format = "C" }
+                Name             = "Total",
+                HeaderText       = "Price",
+                DataPropertyName = "TotalPrice",
+                Width            = 100,
+                DefaultCellStyle = new DataGridViewCellStyle { Format = "C" }
             });
 
-            ordersGrid.Columns.Add(MakeBtn("ReadyBtn",  "✓ Ready",  80));
-            ordersGrid.Columns.Add(MakeBtn("PaidBtn",   "$ Paid",   80));
-            ordersGrid.Columns.Add(MakeBtn("DeleteBtn", "🗑",        60));
+            ordersGrid.Columns.Add(MakeBtn("ReadyBtn",  "✓ Ready",  80));
+            ordersGrid.Columns.Add(MakeBtn("PaidBtn",   "$ Paid",   80));
+            ordersGrid.Columns.Add(MakeBtn("DeleteBtn", "🗑",       60));
 
             ordersGrid.CellContentClick += OrdersGrid_CellContentClick;
-            ordersGrid.SelectionChanged  += (_, __) => UpdateAssignButtonState();
-
-            static DataGridViewButtonColumn MakeBtn(string name, string text, int w) =>
-                new DataGridViewButtonColumn
-                {
-                    Name                    = name,
-                    HeaderText              = "",
-                    Width                   = w,
-                    Text                    = text,
-                    UseColumnTextForButtonValue = true
-                };
         }
 
+        private static DataGridViewButtonColumn MakeBtn(string name, string text, int w) =>
+            new DataGridViewButtonColumn
+            {
+                Name                    = name,
+                HeaderText              = "",
+                Width                   = w,
+                Text                    = text,
+                UseColumnTextForButtonValue = true
+            };
+
         /* -----------------------------------------------------------
-         *  FOOTER (new‑order / assign server)
+         *  FOOTER (create‑order only)
          * --------------------------------------------------------- */
-        private Button btnAssign;
-        private NumericUpDown tableBox;
-        private TextBox clientBox;
+        private FlowLayoutPanel footer;
 
         private void BuildFooter()
         {
@@ -121,20 +128,14 @@ namespace Restaurant_Management_System
             };
 
             tableBox  = new NumericUpDown { Minimum = 1, Maximum = 100, Width = 80, Font = new Font("Segoe UI", 12) };
-            clientBox = new TextBox       { Width   = 200, Font   = new Font("Segoe UI", 12), PlaceholderText = "Client Name" };
+            clientBox = new TextBox       { Width   = 200, Font = new Font("Segoe UI", 12), PlaceholderText = "Client Name" };
 
             var btnCreate = MakeButton("Create Order", Color.FromArgb(0, 120, 215));
-            btnAssign     = MakeButton("Assign Server", Color.FromArgb(100, 180, 90));
-
             btnCreate.Click += (_, __) => CreateOrder();
-            btnAssign.Click += (_, __) => AssignServerToSelected();
-
-            UpdateAssignButtonState();
 
             footer.Controls.Add(Label("Table:"));  footer.Controls.Add(tableBox);
             footer.Controls.Add(Label("Client:")); footer.Controls.Add(clientBox);
             footer.Controls.Add(btnCreate);
-            footer.Controls.Add(btnAssign);
 
             Label Label(string t) => new Label
             {
@@ -146,91 +147,7 @@ namespace Restaurant_Management_System
         }
 
         /* -----------------------------------------------------------
-         *  BUTTON ACTIONS
-         * --------------------------------------------------------- */
-        private void CreateOrder()
-        {
-            string cName = clientBox.Text.Trim();
-            if (string.IsNullOrWhiteSpace(cName))
-            {
-                MessageBox.Show("Enter client name."); return;
-            }
-
-            int tableId = (int)tableBox.Value;
-            int orderId = OrdersDAL.CreateOrder(tableId, cName);
-
-            MessageBox.Show($"Order #{orderId} created.");
-            clientBox.Clear();
-            RefreshGrid();
-        }
-
-        private void AssignServerToSelected()
-        {
-            if (ordersGrid.SelectedRows.Count == 0)
-            {
-                MessageBox.Show("Select an order first."); return;
-            }
-
-            int orderId = (int)ordersGrid.SelectedRows[0].Cells["OrderId"].Value;
-
-            /* choose a server */
-            using var dlg = new Form
-            {
-                Text           = "Select Server",
-                Size           = new Size(280, 400),
-                StartPosition  = FormStartPosition.CenterParent,
-                FormBorderStyle = FormBorderStyle.FixedDialog,
-                MinimizeBox    = false,
-                MaximizeBox    = false
-            };
-
-            var list = new ListBox
-            {
-                Dock          = DockStyle.Fill,
-                Font          = new Font("Segoe UI", 12),
-                DisplayMember = "Text",
-                ValueMember   = "Value"
-            };
-
-            using (var conn = new Microsoft.Data.SqlClient.SqlConnection("Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;"))
-            {
-                conn.Open();
-                using var rdr = new Microsoft.Data.SqlClient.SqlCommand("SELECT ServerId, Name FROM dbo.Servers WHERE IsDeleted = 0", conn).ExecuteReader();
-                while (rdr.Read())
-                {
-                    list.Items.Add(new ListItem(rdr.GetInt32(0), rdr.GetString(1)));
-                }
-            }
-
-            var ok = new Button
-            {
-                Text       = "Select",
-                Dock       = DockStyle.Bottom,
-                Height     = 40,
-                BackColor  = Color.FromArgb(0, 120, 215),
-                ForeColor  = Color.White,
-                FlatStyle  = FlatStyle.Flat
-            };
-            ok.FlatAppearance.BorderSize = 0;
-            ok.Click += (_, __) =>
-            {
-                if (list.SelectedItem is not ListItem li)
-                {
-                    MessageBox.Show("Choose a server."); return;
-                }
-                OrdersDAL.AssignServer(orderId, li.Value);
-                MessageBox.Show($"Server “{li.Text}” assigned.");
-                dlg.Close();
-                RefreshGrid();
-            };
-
-            dlg.Controls.Add(list);
-            dlg.Controls.Add(ok);
-            dlg.ShowDialog();
-        }
-
-        /* -----------------------------------------------------------
-         *  GRID CELL CLICK
+         *  GRID CLICK HANDLER
          * --------------------------------------------------------- */
         private void OrdersGrid_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
@@ -241,49 +158,232 @@ namespace Restaurant_Management_System
             int orderId = (int)row.Cells["OrderId"].Value;
             string col  = ordersGrid.Columns[e.ColumnIndex].Name;
 
-            if (col == "ReadyBtn")
-            {
-                OrdersDAL.UpdateProgress(orderId, 1, "Ready");
-            }
-            else if (col == "PaidBtn")
-            {
-                HandlePayment(orderId, row);
-            }
-            else if (col == "DeleteBtn")
-            {
-                if (MessageBox.Show("Delete this order?", "Confirm",
-                                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                {
+            if      (col == "AssignBtn")  ShowAssignDialog(orderId);
+            else if (col == "AddItemsBtn")ShowItemsDialog (orderId);
+            else if (col == "ReadyBtn")   OrdersDAL.UpdateProgress(orderId, 1, "Ready");
+            else if (col == "PaidBtn")    HandlePayment(orderId, row);
+            else if (col == "DeleteBtn" && Confirm("Delete this order?"))
                     OrdersDAL.DeleteOrder(orderId);
-                }
-            }
 
             RefreshGrid();
         }
 
         /* -----------------------------------------------------------
-         *  PAYMENT LOGIC
+         *  CREATE ORDER
+         * --------------------------------------------------------- */
+        private void CreateOrder()
+        {
+            string client = clientBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(client))
+            {
+                MessageBox.Show("Enter client name."); return;
+            }
+            try
+            {
+                int orderId = OrdersDAL.CreateOrder((int)tableBox.Value, client);
+                MessageBox.Show($"Order #{orderId} created.");
+                clientBox.Clear();
+                RefreshGrid();
+            }
+            catch (SqlException ex) when (ex.Message.Contains("Table already in use"))
+            {
+                MessageBox.Show("That table already has an active order.");
+            }
+        }
+
+        /* -----------------------------------------------------------
+         *  ASSIGN SERVER
+         * --------------------------------------------------------- */
+        private void ShowAssignDialog(int orderId)
+        {
+            using var dlg = new Form
+            {
+                Text = "Assign Server",
+                Size = new Size(280, 400),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MinimizeBox = false,
+                MaximizeBox = false
+            };
+
+            var list = new ListBox
+            {
+                Dock          = DockStyle.Fill,
+                Font          = new Font("Segoe UI", 12),
+                DisplayMember = "Text",
+                ValueMember   = "Value"
+            };
+
+            using (var conn = new SqlConnection("Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;"))
+            {
+                conn.Open();
+                using var rdr = new SqlCommand("SELECT ServerId, Name FROM dbo.Servers WHERE IsDeleted = 0", conn).ExecuteReader();
+                while (rdr.Read()) list.Items.Add(new SimpleItem(rdr.GetInt32(0), rdr.GetString(1)));
+            }
+
+            var ok = MakeButton("Select", Color.FromArgb(0, 120, 215));
+            ok.Dock = DockStyle.Bottom;
+            ok.Click += (_, __) =>
+            {
+                if (list.SelectedItem is not SimpleItem it) { MessageBox.Show("Select a server."); return; }
+                OrdersDAL.AssignServer(orderId, it.Id);
+                dlg.Close();
+                RefreshGrid();
+            };
+
+            dlg.Controls.Add(list);
+            dlg.Controls.Add(ok);
+            dlg.ShowDialog();
+        }
+
+        /* -----------------------------------------------------------
+         *  ADD / EDIT ITEMS with quantities & live total
+         * --------------------------------------------------------- */
+        private void ShowItemsDialog(int orderId)
+        {
+            DataTable menu = OrdersDAL.GetMenuItems();
+            if (menu.Rows.Count == 0) { MessageBox.Show("No menu items available."); return; }
+
+            /* gather current quantities */
+            var existingQty = new Dictionary<int, int>();
+            using (var conn = new SqlConnection("Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;"))
+            {
+                conn.Open();
+                using var rdr = new SqlCommand("SELECT ItemId, Quantity FROM dbo.OrderItems WHERE OrderId=@o",
+                                               conn) { Parameters = { new SqlParameter("@o", orderId) } }.ExecuteReader();
+                while (rdr.Read()) existingQty[rdr.GetInt32(0)] = rdr.GetInt32(1);
+            }
+
+            using var dlg = new Form
+            {
+                Text = "Choose Items",
+                Size = new Size(550, 600),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MinimizeBox = false,
+                MaximizeBox = false
+            };
+
+            var grid = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                AutoGenerateColumns = false,
+                RowHeadersVisible = false,
+                BackgroundColor = Color.White,
+                AllowUserToAddRows = false
+            };
+
+            grid.Columns.Add(new DataGridViewTextBoxColumn { Name="Id", DataPropertyName="Id", Visible=false });
+            grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText="Item",  DataPropertyName="Name",  Width=250 });
+            grid.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                HeaderText="Unit",
+                DataPropertyName="Price",
+                Width=80,
+                DefaultCellStyle = new DataGridViewCellStyle { Format="C2" }
+            });
+            var qtyCol = new DataGridViewTextBoxColumn
+            {
+                Name="Qty",
+                HeaderText="Qty",
+                DataPropertyName="Qty",
+                Width=60
+            };
+            grid.Columns.Add(qtyCol);
+
+            var itemRows = menu.AsEnumerable()
+                               .Select(r => new ItemRow
+                               {
+                                   Id    = r.Field<int>("ItemId"),
+                                   Name  = r.Field<string>("Name"),
+                                   Price = r.Field<decimal>("Price"),
+                                   Qty   = existingQty.TryGetValue(r.Field<int>("ItemId"), out int q) ? q : 0
+                               }).ToList();
+
+            grid.DataSource = itemRows;
+            grid.EditingControlShowing += (_, e) =>
+            {
+                if (grid.CurrentCell.ColumnIndex == grid.Columns["Qty"].Index &&
+                    e.Control is TextBox tb)
+                {
+                    tb.KeyPress -= Qty_KeyPress;
+                    tb.KeyPress += Qty_KeyPress;
+                }
+            };
+
+            /* live total */
+            var totalLbl = new Label
+            {
+                Dock = DockStyle.Bottom,
+                Height = 36,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleRight,
+                Padding = new Padding(0,0,16,0)
+            };
+            void RecalcTotal()
+            {
+                decimal sum = itemRows.Sum(r => r.Price * r.Qty);
+                totalLbl.Text = $"Total: {sum:C}";
+            }
+            RecalcTotal();
+            grid.CellEndEdit += (_,__) => { int r = grid.CurrentRow.Index; itemRows[r].Qty = Math.Max(0, itemRows[r].Qty); RecalcTotal(); };
+
+            var ok = MakeButton("Save", Color.FromArgb(0,120,215));
+            ok.Dock = DockStyle.Bottom;
+            ok.Click += (_, __) =>
+            {
+                var dict = itemRows.Where(r => r.Qty > 0).ToDictionary(r => r.Id, r => r.Qty);
+                if (dict.Count == 0) { MessageBox.Show("Add at least one item (quantity > 0)."); return; }
+                OrdersDAL.AddItems(orderId, dict);
+                dlg.Close();
+                RefreshGrid();
+            };
+
+            dlg.Controls.Add(grid);
+            dlg.Controls.Add(totalLbl);
+            dlg.Controls.Add(ok);
+            dlg.ShowDialog();
+
+            /* numeric input only */
+            static void Qty_KeyPress(object sender, KeyPressEventArgs e)
+            {
+                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+                    e.Handled = true;
+            }
+        }
+
+        private sealed class ItemRow
+        {
+            public int     Id    { get; set; }
+            public string  Name  { get; set; }
+            public decimal Price { get; set; }
+            public int     Qty   { get; set; }
+        }
+
+        /* -----------------------------------------------------------
+         *  PAYMENT
          * --------------------------------------------------------- */
         private void HandlePayment(int orderId, DataGridViewRow row)
         {
-            decimal total = (decimal)row.Cells["Total"].Value;
-            int clientId  = OrdersDAL.GetClientId(orderId);
+            decimal total    = (decimal)row.Cells["Total"].Value;
+            bool    willDisc = ((string)row.Cells["DiscountFlag"].Value) == "Yes";
+            int clientId     = OrdersDAL.GetClientId(orderId);
 
             int points = OrdersDAL.GetClientPoints(clientId) + 1;
-            decimal discount = 0m;
+            decimal disc = 0m;
 
-            if (points >= 5)
+            if (willDisc)
             {
                 points = 0;
-                discount = total * 0.10m;
-                total   -= discount;
+                disc   = total * 0.10m;
+                total -= disc;
             }
 
             OrdersDAL.UpdateProgress(orderId, 2, "Paid");
             OrdersDAL.UpdateClientPoints(clientId, points);
-            OrdersDAL.DeleteOrder(orderId);   // remove completed order completely
+            OrdersDAL.DeleteOrder(orderId);
 
-            MessageBox.Show(discount > 0
+            MessageBox.Show(willDisc
                 ? $"Paid {total:C}. 10 % discount applied!"
                 : $"Paid {total:C}. Thank you!");
         }
@@ -291,11 +391,11 @@ namespace Restaurant_Management_System
         /* -----------------------------------------------------------
          *  UTIL
          * --------------------------------------------------------- */
-        private void RefreshGrid() =>
-            ordersGrid.DataSource = OrdersDAL.GetActiveOrders();
+        private void RefreshGrid() => ordersGrid.DataSource = OrdersDAL.GetActiveOrders();
 
-        private void UpdateAssignButtonState() =>
-            btnAssign.Enabled = ordersGrid.SelectedRows.Count > 0;
+        private static bool Confirm(string msg) =>
+            MessageBox.Show(msg, "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+            == DialogResult.Yes;
 
         private static Button MakeButton(string text, Color bg) => new Button
         {
@@ -309,8 +409,7 @@ namespace Restaurant_Management_System
             FlatAppearance = { BorderSize = 0 }
         };
 
-        /* helper object for the server ListBox */
-        private sealed record ListItem(int Value, string Text)
+        private sealed record SimpleItem(int Id, string Text)
         {
             public override string ToString() => Text;
         }
