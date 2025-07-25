@@ -26,7 +26,7 @@
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inquiryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainPanel = new System.Windows.Forms.Panel();
-            this.tablesPanel = new System.Windows.Forms.Panel();
+            this.ordersPanel = new System.Windows.Forms.Panel();
             this.itemsPanel = new System.Windows.Forms.Panel();
             this.aboutPanel = new System.Windows.Forms.Panel();
             this.inquiryPanel = new System.Windows.Forms.Panel();
@@ -103,7 +103,7 @@
             // mainPanel
             // 
             this.mainPanel.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.mainPanel.Controls.Add(this.tablesPanel);
+            this.mainPanel.Controls.Add(this.ordersPanel);
             this.mainPanel.Controls.Add(this.itemsPanel);
             this.mainPanel.Controls.Add(this.usersPanel);
             this.mainPanel.Controls.Add(this.clientsPanel);
@@ -117,17 +117,17 @@
             this.mainPanel.Size = new System.Drawing.Size(1225, 609);
             this.mainPanel.TabIndex = 1;
             // 
-            // tablesPanel
+            // ordersPanel
             // 
-            this.tablesPanel.BackColor = System.Drawing.Color.White;
-            this.tablesPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tablesPanel.Location = new System.Drawing.Point(0, 0);
-            this.tablesPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tablesPanel.Name = "tablesPanel";
-            this.tablesPanel.Padding = new System.Windows.Forms.Padding(35, 30, 35, 30);
-            this.tablesPanel.Size = new System.Drawing.Size(1225, 609);
-            this.tablesPanel.TabIndex = 0;
-            this.tablesPanel.Visible = false;
+            this.ordersPanel.BackColor = System.Drawing.Color.White;
+            this.ordersPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ordersPanel.Location = new System.Drawing.Point(0, 0);
+            this.ordersPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.ordersPanel.Name = "ordersPanel";
+            this.ordersPanel.Padding = new System.Windows.Forms.Padding(35, 30, 35, 30);
+            this.ordersPanel.Size = new System.Drawing.Size(1225, 609);
+            this.ordersPanel.TabIndex = 0;
+            this.ordersPanel.Visible = false;
             // 
             // itemsPanel
             // 
@@ -226,7 +226,7 @@
         public System.Windows.Forms.ToolStripMenuItem ordersToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem menuToolStripMenuItem;
         public System.Windows.Forms.Panel mainPanel;
-        public System.Windows.Forms.Panel tablesPanel;
+        public System.Windows.Forms.Panel ordersPanel;
         public System.Windows.Forms.Panel itemsPanel;
         public System.Windows.Forms.Panel aboutPanel;
         public System.Windows.Forms.Panel inquiryPanel;

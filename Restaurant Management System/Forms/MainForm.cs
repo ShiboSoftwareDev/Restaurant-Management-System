@@ -31,7 +31,7 @@ namespace Restaurant_Management_System
 
         private void ShowSection(string section)
         {
-            tablesPanel.Visible = false;
+            ordersPanel.Visible = false;
             itemsPanel.Visible = false;
             aboutPanel.Visible = false;
             usersPanel.Visible = false;
@@ -41,9 +41,9 @@ namespace Restaurant_Management_System
             
             if (section == "Orders")
             {
-                // if (tablesPanel.Controls.Count == 0) SetupTablesPanel();
-                SetupTablesPanel();
-                tablesPanel.Visible = true;
+                // if (ordersPanel.Controls.Count == 0) SetupordersPanel();
+                SetupOrdersPanel();
+                ordersPanel.Visible = true;
             }
             else if (section == "Items")
             {
