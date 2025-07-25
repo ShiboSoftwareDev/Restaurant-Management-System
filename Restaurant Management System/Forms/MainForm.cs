@@ -85,24 +85,24 @@ namespace Restaurant_Management_System
         private Button addItemButton;
         private Button editItemButton;
         private Button deleteItemButton;
-        private void LoadMenuItems()
-        {
-            using (SqlConnection conn = new SqlConnection(connectionString))
-            {
-                try
-                {
-                    conn.Open();
-                    var adapter = new SqlDataAdapter("SELECT ItemId, Name, Price FROM MenuItems", conn);
-                    var table = new DataTable();
-                    adapter.Fill(table);
-                    itemsGrid.DataSource = table;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error loading menu items: " + ex.Message);
-                }
-            }
-        }
+        // private void LoadMenuItems()
+        // {
+        //     using (SqlConnection conn = new SqlConnection(connectionString))
+        //     {
+        //         try
+        //         {
+        //             conn.Open();
+        //             var adapter = new SqlDataAdapter("SELECT ItemId, Name, Price FROM MenuItems", conn);
+        //             var table = new DataTable();
+        //             adapter.Fill(table);
+        //             itemsGrid.DataSource = table;
+        //         }
+        //         catch (Exception ex)
+        //         {
+        //             MessageBox.Show("Error loading menu items: " + ex.Message);
+        //         }
+        //     }
+        // }
         private void LoadClients(DataGridView grid)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
