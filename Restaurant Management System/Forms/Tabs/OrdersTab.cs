@@ -192,7 +192,6 @@ namespace Restaurant_Management_System
             try
             {
                 int orderId = OrdersDAL.CreateOrder((int)tableBox.Value, client);
-                MessageBox.Show($"Order #{orderId} created.");
                 clientBox.Clear();
                 RefreshGrid();
             }
@@ -399,10 +398,6 @@ namespace Restaurant_Management_System
             OrdersDAL.UpdateProgress(orderId, 2, "Paid");
             OrdersDAL.UpdateClientPoints(clientId, points);
             OrdersDAL.DeleteOrder(orderId);
-
-            MessageBox.Show(willDisc
-                ? $"Paid {total:C}. 10 % discount applied!"
-                : $"Paid {total:C}. Thank you!");
         }
 
         /* -----------------------------------------------------------
