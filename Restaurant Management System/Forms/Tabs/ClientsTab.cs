@@ -15,7 +15,8 @@ namespace Restaurant_Management_System
 
             var clientsGrid = new DataGridView
             {
-                Dock = DockStyle.Fill,
+                Height = 400,
+                Dock = DockStyle.Top,
                 ReadOnly = true,
                 AutoGenerateColumns = false,
                 AllowUserToAddRows = false,
@@ -79,7 +80,5 @@ namespace Restaurant_Management_System
             clientsPanel.Controls.Add(label);
         }
 
-        // ...existing code...
-                
     }
 }

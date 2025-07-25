@@ -59,7 +59,8 @@ namespace Restaurant_Management_System
                 // Admin: view all messages
                 var messagesGrid = new DataGridView
                 {
-                    Dock = DockStyle.Fill,
+                    Height = 400,
+                    Dock = DockStyle.Top,
                     ReadOnly = true,
                     AutoGenerateColumns = true,
                     BackgroundColor = Color.White,

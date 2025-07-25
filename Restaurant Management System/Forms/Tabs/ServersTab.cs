@@ -30,7 +30,8 @@ namespace Restaurant_Management_System
             /* Grid -------------------------------------------------- */
             var grid = new DataGridView
             {
-                Dock                      = DockStyle.Fill,
+                Height = 400,
+                Dock = DockStyle.Top,
                 ReadOnly                  = true,
                 AutoGenerateColumns       = false,
                 AllowUserToAddRows        = false,
