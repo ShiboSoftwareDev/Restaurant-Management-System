@@ -8,7 +8,7 @@ namespace Restaurant_Management_System.DAL
     public static class ClientsDAL
     {
         /* -----------------------------------------------------------
-         *  READ – only active clients (IsDeleted = 0)
+         *  READ – only active clients
          * --------------------------------------------------------- */
         public static DataTable GetClients(string connectionString)
         {
@@ -33,8 +33,7 @@ namespace Restaurant_Management_System.DAL
         }
 
         /* -----------------------------------------------------------
-         *  CREATE – revive if soft‑deleted; otherwise insert new.
-         *           When revived, IsDeleted → 0 and LoyaltyPoints → 0
+         *  ADD / REVIVE  (unique active names enforced)
          * --------------------------------------------------------- */
         public static void AddClient(string connectionString, string name)
         {
@@ -44,27 +43,49 @@ namespace Restaurant_Management_System.DAL
 
             try
             {
-                // 1️⃣ Attempt to revive an existing soft‑deleted row
-                var revive = new SqlCommand(
+                /* 1️⃣  Does an active client with this name already exist? */
+                var existsCmd = new SqlCommand(
+                    "SELECT 1 FROM Clients WHERE Name = @name AND IsDeleted = 0",
+                    conn, tx);
+                existsCmd.Parameters.AddWithValue("@name", name);
+
+                bool activeExists = existsCmd.ExecuteScalar() != null;
+                if (activeExists)
+                {
+                    MessageBox.Show("A client with this name already exists.");
+                    tx.Rollback();
+                    return;
+                }
+
+                /* 2️⃣  Try to revive a soft‑deleted client with same name */
+                var reviveCmd = new SqlCommand(
                     @"UPDATE Clients
                       SET IsDeleted      = 0,
                           LoyaltyPoints  = 0
                       WHERE Name = @name AND IsDeleted = 1",
                     conn, tx);
-                revive.Parameters.AddWithValue("@name", name);
+                reviveCmd.Parameters.AddWithValue("@name", name);
 
-                if (revive.ExecuteNonQuery() == 0)
+                int revived = reviveCmd.ExecuteNonQuery();
+
+                /* 3️⃣  If nothing to revive, insert a fresh client record */
+                if (revived == 0)
                 {
-                    // 2️⃣ No match → insert new
-                    var insert = new SqlCommand(
+                    var insertCmd = new SqlCommand(
                         @"INSERT INTO Clients (Name, LoyaltyPoints, IsDeleted)
                           VALUES (@name, 0, 0)",
                         conn, tx);
-                    insert.Parameters.AddWithValue("@name", name);
-                    insert.ExecuteNonQuery();
+                    insertCmd.Parameters.AddWithValue("@name", name);
+                    insertCmd.ExecuteNonQuery();
                 }
 
                 tx.Commit();
+            }
+            catch (SqlException sqlEx) when (sqlEx.Number == 2601 || sqlEx.Number == 2627)
+            {
+                /* Unique‑index violation (should be rare because we already check) */
+                tx.Rollback();
+                MessageBox.Show("Client name must be unique.");
             }
             catch (Exception ex)
             {
@@ -74,7 +95,7 @@ namespace Restaurant_Management_System.DAL
         }
 
         /* -----------------------------------------------------------
-         *  SOFT DELETE – mark row as deleted
+         *  SOFT DELETE
          * --------------------------------------------------------- */
         public static void DeleteClient(string connectionString, int clientId)
         {
