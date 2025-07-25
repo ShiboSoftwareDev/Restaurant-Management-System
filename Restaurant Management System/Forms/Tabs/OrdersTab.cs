@@ -25,6 +25,9 @@ namespace Restaurant_Management_System
         {
             ordersPanel.Controls.Clear();
 
+            ordersPanel.AutoScroll             = true;
+            ordersPanel.HorizontalScroll.SmallChange = 20;
+
             var header = new Label
             {
                 Text      = "Orders",
@@ -50,7 +53,9 @@ namespace Restaurant_Management_System
         {
             ordersGrid = new DataGridView
             {
-                Dock                      = DockStyle.Fill,
+                Height                    = 430,
+                Dock                      = DockStyle.Top,
+                ScrollBars                = ScrollBars.Both,
                 ReadOnly                  = true,
                 AutoGenerateColumns       = false,
                 AllowUserToAddRows        = false,
@@ -72,20 +77,16 @@ namespace Restaurant_Management_System
                 RowTemplate = { Height = 36 }
             };
 
+            /* -------------- Fixed / text cols -------------- */
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "OrderId", DataPropertyName = "OrderId", Visible = false });
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Table #", DataPropertyName = "TableNumber", Width = 80 });
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Client",  DataPropertyName = "ClientName",  Width = 160 });
 
-            ordersGrid.Columns.Add(MakeBtn("AssignBtn",  "Assign Srv", 90));      // before Server
+            /* -------------- Action + data cols -------------- */
+            ordersGrid.Columns.Add(MakeBtn("AssignBtn",  "Assign Srv", 90));   // before Server
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Server", DataPropertyName = "Server", Width = 120 });
-
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Status", DataPropertyName = "Status", Width = 100 });
-
-            ordersGrid.Columns.Add(MakeBtn("AddItemsBtn","➕ Items",   90));      // before Items
-            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Items",  DataPropertyName = "OrderItems", Width = 260 });
-
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn { Name = "DiscountFlag", HeaderText = "Discount", DataPropertyName = "DiscountFlag", Width = 90 });
-
             ordersGrid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name             = "Total",
@@ -98,6 +99,16 @@ namespace Restaurant_Management_System
             ordersGrid.Columns.Add(MakeBtn("ReadyBtn",  "✓ Ready",  80));
             ordersGrid.Columns.Add(MakeBtn("PaidBtn",   "$ Paid",   80));
             ordersGrid.Columns.Add(MakeBtn("DeleteBtn", "🗑",       60));
+
+            /* -------------- Add‑items + Items (Items LAST) -------------- */
+            ordersGrid.Columns.Add(MakeBtn("AddItemsBtn","➕ Items", 90));  // just before Items
+            ordersGrid.Columns.Add(new DataGridViewTextBoxColumn            // LAST column
+            {
+                HeaderText       = "Items",
+                DataPropertyName = "OrderItems",
+                Name             = "ItemsCol",
+                AutoSizeMode     = DataGridViewAutoSizeColumnMode.AllCells
+            });
 
             ordersGrid.CellContentClick += OrdersGrid_CellContentClick;
         }
@@ -244,7 +255,7 @@ namespace Restaurant_Management_System
             DataTable menu = OrdersDAL.GetMenuItems();
             if (menu.Rows.Count == 0) { MessageBox.Show("No menu items available."); return; }
 
-            /* gather current quantities */
+            /* current quantities */
             var existingQty = new Dictionary<int, int>();
             using (var conn = new SqlConnection("Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;"))
             {
@@ -257,7 +268,7 @@ namespace Restaurant_Management_System
             using var dlg = new Form
             {
                 Text = "Choose Items",
-                Size = new Size(550, 600),
+                Size = new Size(560, 610),
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MinimizeBox = false,
@@ -274,7 +285,7 @@ namespace Restaurant_Management_System
             };
 
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name="Id", DataPropertyName="Id", Visible=false });
-            grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText="Item",  DataPropertyName="Name",  Width=250 });
+            grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText="Item",  DataPropertyName="Name",  Width=260 });
             grid.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText="Unit",
@@ -285,9 +296,10 @@ namespace Restaurant_Management_System
             var qtyCol = new DataGridViewTextBoxColumn
             {
                 Name="Qty",
-                HeaderText="Qty",
+                HeaderText="Qty *",
                 DataPropertyName="Qty",
-                Width=60
+                Width=60,
+                DefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.LightYellow }
             };
             grid.Columns.Add(qtyCol);
 
@@ -326,7 +338,12 @@ namespace Restaurant_Management_System
                 totalLbl.Text = $"Total: {sum:C}";
             }
             RecalcTotal();
-            grid.CellEndEdit += (_,__) => { int r = grid.CurrentRow.Index; itemRows[r].Qty = Math.Max(0, itemRows[r].Qty); RecalcTotal(); };
+            grid.CellEndEdit += (_,__) =>
+            {
+                int r = grid.CurrentRow.Index;
+                itemRows[r].Qty = Math.Max(0, itemRows[r].Qty);
+                RecalcTotal();
+            };
 
             var ok = MakeButton("Save", Color.FromArgb(0,120,215));
             ok.Dock = DockStyle.Bottom;
