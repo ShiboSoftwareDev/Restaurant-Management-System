@@ -9,7 +9,7 @@ namespace Restaurant_Management_System
     public partial class MainForm : Form
     {
         /* -----------------------------------------------------------
-         *  USERS TAB  –  Admin‑only
+         *  USERS TAB  –  Admin-only
          * --------------------------------------------------------- */
         private void SetupUsersPanel()
         {
@@ -31,7 +31,7 @@ namespace Restaurant_Management_System
                     var cmd = new SqlCommand(
                         "SELECT IsAdmin " +
                         "FROM   Users " +
-                        "WHERE  Username = @u", conn);
+                        "WHERE  Username = @u AND IsDeleted = 0", conn);
                     cmd.Parameters.AddWithValue("@u", username);
 
                     object? flag = cmd.ExecuteScalar();
@@ -55,7 +55,7 @@ namespace Restaurant_Management_System
             }
 
             /* -------------------------------------------------------
-             *  2️⃣  Non‑admin view
+             *  2️⃣  Non-admin view
              * ----------------------------------------------------- */
             if (!isAdmin)
             {
@@ -140,7 +140,7 @@ namespace Restaurant_Management_System
 
             LoadUsers(grid);
 
-            /* ---------- Footer / add‑user area ------------------- */
+            /* ---------- Footer / add-user area ------------------- */
             var footer = new FlowLayoutPanel
             {
                 Dock          = DockStyle.Bottom,
@@ -260,7 +260,7 @@ namespace Restaurant_Management_System
                 {
                     try
                     {
-                        DAL.UsersDAL.DeleteUser(id);
+                        DAL.UsersDAL.DeleteUser(id); // now a soft delete
                         LoadUsers(grid);
                     }
                     catch (Exception ex)
