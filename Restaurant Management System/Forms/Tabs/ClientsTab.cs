@@ -70,7 +70,7 @@ namespace Restaurant_Management_System
             {
                 HeaderText       = "Loyalty Points",
                 DataPropertyName = "LoyaltyPoints",
-                Width            = 120
+                Width            = 140
             });
 
             LoadClients(grid);
