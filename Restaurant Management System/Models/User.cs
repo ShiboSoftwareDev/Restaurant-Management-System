@@ -6,6 +6,6 @@ namespace Restaurant_Management_System.Models
         public string Username  { get; set; }
         public bool   IsAdmin   { get; set; }
         public bool   IsLocked  { get; set; }
-        public bool   IsDeleted { get; set; }   // soft-delete flag
+        public bool   IsDeleted { get; set; } 
     }
 }
