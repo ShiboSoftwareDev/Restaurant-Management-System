@@ -24,11 +24,13 @@
             this.clientsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.serversToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.logsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.inquiryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainPanel = new System.Windows.Forms.Panel();
             this.ordersPanel = new System.Windows.Forms.Panel();
             this.itemsPanel = new System.Windows.Forms.Panel();
             this.aboutPanel = new System.Windows.Forms.Panel();
+            this.logsPanel = new System.Windows.Forms.Panel();
             this.inquiryPanel = new System.Windows.Forms.Panel();
             this.usersPanel = new System.Windows.Forms.Panel();
             this.clientsPanel = new System.Windows.Forms.Panel();
@@ -49,6 +51,7 @@
             this.clientsToolStripMenuItem,
             this.serversToolStripMenuItem,
             this.aboutToolStripMenuItem,
+            this.logsToolStripMenuItem,
             this.inquiryToolStripMenuItem
             });
             // 
@@ -57,6 +60,12 @@
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(70, 25);
             this.aboutToolStripMenuItem.Text = "About";
+            // 
+            // logsToolStripMenuItem
+            // 
+            this.logsToolStripMenuItem.Name = "logsToolStripMenuItem";
+            this.logsToolStripMenuItem.Size = new System.Drawing.Size(70, 25);
+            this.logsToolStripMenuItem.Text = "Logs";
             // 
             // inquiryToolStripMenuItem
             // 
@@ -109,6 +118,7 @@
             this.mainPanel.Controls.Add(this.clientsPanel);
             this.mainPanel.Controls.Add(this.serversPanel);
             this.mainPanel.Controls.Add(this.aboutPanel);
+            this.mainPanel.Controls.Add(this.logsPanel);
             this.mainPanel.Controls.Add(this.inquiryPanel);
             this.mainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainPanel.Location = new System.Drawing.Point(0, 29);
@@ -152,6 +162,18 @@
             this.aboutPanel.Size = new System.Drawing.Size(1225, 609);
             this.aboutPanel.TabIndex = 5;
             this.aboutPanel.Visible = false;
+            // 
+            // logsPanel 
+            // 
+            this.logsPanel.BackColor = System.Drawing.Color.White;
+            this.logsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.logsPanel.Location = new System.Drawing.Point(0, 0);
+            this.logsPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.logsPanel.Name = "logsPanel";
+            this.logsPanel.Padding = new System.Windows.Forms.Padding(35, 30, 35, 30);
+            this.logsPanel.Size = new System.Drawing.Size(1225, 609);
+            this.logsPanel.TabIndex = 5;
+            this.logsPanel.Visible = false;
             // 
             // inquiryPanel 
             // 
@@ -229,11 +251,13 @@
         public System.Windows.Forms.Panel ordersPanel;
         public System.Windows.Forms.Panel itemsPanel;
         public System.Windows.Forms.Panel aboutPanel;
+        public System.Windows.Forms.Panel logsPanel;
         public System.Windows.Forms.Panel inquiryPanel;
         public System.Windows.Forms.ToolStripMenuItem usersToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem clientsToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem serversToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
+        public System.Windows.Forms.ToolStripMenuItem logsToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem inquiryToolStripMenuItem;
         public System.Windows.Forms.Panel usersPanel;
         public System.Windows.Forms.Panel clientsPanel;

@@ -131,6 +131,7 @@ namespace Restaurant_Management_System
 
                     if (result > 0)
                     {
+                        AppLog.Write("LOGIN_SUCCESS", $"User '{username}' logged in successfully.", username);
                         // Success: reset attempts and unlock
                         var successCmd = new SqlCommand("UPDATE Users SET IsLocked = 0, LoginAttempts = 0, LastLoginAttempt = @now WHERE UserId = @id", connection);
                         successCmd.Parameters.AddWithValue("@id", userId);
