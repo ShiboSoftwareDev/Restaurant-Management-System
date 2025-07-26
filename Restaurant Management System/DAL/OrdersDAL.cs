@@ -10,9 +10,9 @@ namespace Restaurant_Management_System.DAL
         private const string Conn =
             "Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;";
 
-        /* -----------------------------------------------------------
-         *  READ – orders with discount preview & final price
-         * --------------------------------------------------------- */
+        /* ===========================================================
+         *  1. READ  — active orders with discount preview
+         * ========================================================= */
         public static DataTable GetActiveOrders()
         {
             var dt = new DataTable();
@@ -47,7 +47,6 @@ namespace Restaurant_Management_System.DAL
                             ), N'--')                   AS OrderItems,
                         CASE WHEN ISNULL(c.LoyaltyPoints,0) >= 4
                              THEN 'Yes' ELSE 'No' END   AS DiscountFlag,
-
                         CASE WHEN ISNULL(c.LoyaltyPoints,0) >= 4
                              THEN CAST(ISNULL(a.SubTotal,0)*0.9 AS decimal(10,2))
                              ELSE ISNULL(a.SubTotal,0) END       AS TotalPrice,
@@ -79,25 +78,25 @@ namespace Restaurant_Management_System.DAL
             return dt;
         }
 
-        /* -----------------------------------------------------------
-         *  CREATE ORDER
-         * --------------------------------------------------------- */
+        /* ===========================================================
+         *  2. ORDER CREATION & BASIC OPS
+         * ========================================================= */
         public static int CreateOrder(int tableId, string clientName)
         {
             using var conn = new SqlConnection(Conn);
             conn.Open();
             using var tx = conn.BeginTransaction();
 
-            /* forbid duplicate active order on same table */
+            /* prohibit duplicate active order */
             using (var chk = new SqlCommand(
-                       "IF EXISTS (SELECT 1 FROM dbo.Orders WHERE TableId=@T AND Progress<3) "
-                     + "RAISERROR ('Table already in use.',16,1);", conn, tx))
+                   "IF EXISTS (SELECT 1 FROM dbo.Orders WHERE TableId=@T AND Progress<3) "
+                 + "RAISERROR ('Table already in use.',16,1);", conn, tx))
             {
                 chk.Parameters.AddWithValue("@T", tableId);
                 chk.ExecuteNonQuery();
             }
 
-            /* ensure table exists */
+            /* ensure table row exists */
             new SqlCommand(@"
                 IF NOT EXISTS (SELECT 1 FROM dbo.Tables WHERE TableId=@T)
                 BEGIN
@@ -107,7 +106,7 @@ namespace Restaurant_Management_System.DAL
                 END;", conn, tx)
             { Parameters = { new SqlParameter("@T", tableId) } }.ExecuteNonQuery();
 
-            /* client */
+            /* client upsert */
             var cmdCli = new SqlCommand(@"
                 IF EXISTS (SELECT 1 FROM dbo.Clients WHERE Name=@N AND IsDeleted=0)
                     SELECT ClientId FROM dbo.Clients WHERE Name=@N AND IsDeleted=0
@@ -117,10 +116,11 @@ namespace Restaurant_Management_System.DAL
             cmdCli.Parameters.AddWithValue("@N", clientName);
             int clientId = Convert.ToInt32(cmdCli.ExecuteScalar());
 
-            /* order */
+            /* create order */
             var cmdOrd = new SqlCommand(@"
                 INSERT INTO dbo.Orders
-                      (TableId, ClientId, OrderStatus, Progress, OrderTime, TotalPrice)
+                      (TableId, ClientId, OrderStatus, Progress,
+                       OrderTime, TotalPrice)
                 OUTPUT INSERTED.OrderId
                 VALUES (@T,@C,'Pending',0,@Now,0);", conn, tx);
             cmdOrd.Parameters.AddWithValue("@T",   tableId);
@@ -132,9 +132,6 @@ namespace Restaurant_Management_System.DAL
             return orderId;
         }
 
-        /* -----------------------------------------------------------
-         *  ASSIGN SERVER
-         * --------------------------------------------------------- */
         public static void AssignServer(int orderId, int serverId)
         {
             using var conn = new SqlConnection(Conn);
@@ -146,34 +143,30 @@ namespace Restaurant_Management_System.DAL
             cmd.ExecuteNonQuery();
         }
 
-        /* -----------------------------------------------------------
-         *  ADD/UPDATE ITEMS (with quantities)
-         * --------------------------------------------------------- */
-        public static void AddItems(int orderId, Dictionary<int,int> itemsWithQty)
+        /* add / update items (quantity dictionary) */
+        public static void AddItems(int orderId, Dictionary<int, int> items)
         {
             using var conn = new SqlConnection(Conn);
             conn.Open();
             using var tx = conn.BeginTransaction();
 
-            /* clear existing items */
             new SqlCommand("DELETE FROM dbo.OrderItems WHERE OrderId=@o", conn, tx)
                 { Parameters = { new SqlParameter("@o", orderId) } }.ExecuteNonQuery();
 
-            /* re‑insert */
             var ins = new SqlCommand(
                 "INSERT INTO dbo.OrderItems (OrderId, ItemId, Quantity) VALUES (@o,@i,@q)",
                 conn, tx);
             ins.Parameters.Add("@o", System.Data.SqlDbType.Int).Value = orderId;
             ins.Parameters.Add("@i", System.Data.SqlDbType.Int);
             ins.Parameters.Add("@q", System.Data.SqlDbType.Int);
-            foreach (var (id, qty) in itemsWithQty)
+
+            foreach (var (id, qty) in items)
             {
                 ins.Parameters["@i"].Value = id;
                 ins.Parameters["@q"].Value = qty;
                 ins.ExecuteNonQuery();
             }
 
-            /* recalc price */
             new SqlCommand(@"
                 UPDATE o SET TotalPrice =
                 (SELECT SUM(mi.Price*oi.Quantity)
@@ -186,9 +179,79 @@ namespace Restaurant_Management_System.DAL
             tx.Commit();
         }
 
-        /* -----------------------------------------------------------
-         *  UPDATE PROGRESS
-         * --------------------------------------------------------- */
+        /* ===========================================================
+         *  3. PAY ORDER  (single transaction)
+         * ========================================================= */
+        public static (decimal finalTotal, bool discountApplied) PayOrder(int orderId)
+        {
+            using var conn = new SqlConnection(Conn);
+            conn.Open();
+            using var tx = conn.BeginTransaction();
+
+            /* fetch client & current total */
+            int clientId;
+            decimal total;
+            using (var r = new SqlCommand(
+                   "SELECT ClientId, ISNULL(TotalPrice,0) FROM dbo.Orders WHERE OrderId=@o",
+                   conn, tx)
+                   { Parameters = { new SqlParameter("@o", orderId) } }.ExecuteReader())
+            {
+                if (!r.Read()) throw new InvalidOperationException("Order not found.");
+                clientId = r.GetInt32(0);
+                total    = r.GetDecimal(1);
+            }
+
+            /* get / update loyalty */
+            int points;
+            using (var cmd = new SqlCommand(
+                   "SELECT LoyaltyPoints FROM dbo.Clients WHERE ClientId=@c", conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@c", clientId);
+                points = (int)cmd.ExecuteScalar();
+            }
+
+            bool discount = points >= 4;
+            if (discount)
+            {
+                total *= 0.9m;
+                points = 0;
+            }
+            else
+            {
+                points += 1;
+            }
+
+            using (var cmd = new SqlCommand(
+                   "UPDATE dbo.Clients SET LoyaltyPoints=@p WHERE ClientId=@c", conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@p", points);
+                cmd.Parameters.AddWithValue("@c", clientId);
+                cmd.ExecuteNonQuery();
+            }
+
+            /* mark paid (for auditing) */
+            using (var cmd = new SqlCommand(
+                   "UPDATE dbo.Orders SET Progress=2, OrderStatus='Paid', TotalPrice=@t WHERE OrderId=@o",
+                   conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@t", total);
+                cmd.Parameters.AddWithValue("@o", orderId);
+                cmd.ExecuteNonQuery();
+            }
+
+            /* remove rows */
+            new SqlCommand("DELETE FROM dbo.OrderItems WHERE OrderId=@o", conn, tx)
+                { Parameters = { new SqlParameter("@o", orderId) } }.ExecuteNonQuery();
+            new SqlCommand("DELETE FROM dbo.Orders WHERE OrderId=@o", conn, tx)
+                { Parameters = { new SqlParameter("@o", orderId) } }.ExecuteNonQuery();
+
+            tx.Commit();
+            return (total, discount);
+        }
+
+        /* ===========================================================
+         *  4. SMALL HELPERS (still used elsewhere)
+         * ========================================================= */
         public static void UpdateProgress(int orderId, int progress, string status)
         {
             using var conn = new SqlConnection(Conn);
@@ -201,9 +264,6 @@ namespace Restaurant_Management_System.DAL
             cmd.ExecuteNonQuery();
         }
 
-        /* -----------------------------------------------------------
-         *  DELETE ORDER
-         * --------------------------------------------------------- */
         public static void DeleteOrder(int orderId)
         {
             using var conn = new SqlConnection(Conn);
@@ -218,9 +278,6 @@ namespace Restaurant_Management_System.DAL
             tx.Commit();
         }
 
-        /* -----------------------------------------------------------
-         *  CLIENT HELPERS
-         * --------------------------------------------------------- */
         public static int GetClientId(int orderId)
         {
             using var conn = new SqlConnection(Conn);
@@ -239,17 +296,6 @@ namespace Restaurant_Management_System.DAL
                 "SELECT LoyaltyPoints FROM dbo.Clients WHERE ClientId=@c", conn);
             cmd.Parameters.AddWithValue("@c", clientId);
             return Convert.ToInt32(cmd.ExecuteScalar());
-        }
-
-        public static void UpdateClientPoints(int clientId, int points)
-        {
-            using var conn = new SqlConnection(Conn);
-            conn.Open();
-            using var cmd = new SqlCommand(
-                "UPDATE dbo.Clients SET LoyaltyPoints=@p WHERE ClientId=@c", conn);
-            cmd.Parameters.AddWithValue("@p", points);
-            cmd.Parameters.AddWithValue("@c", clientId);
-            cmd.ExecuteNonQuery();
         }
     }
 }
