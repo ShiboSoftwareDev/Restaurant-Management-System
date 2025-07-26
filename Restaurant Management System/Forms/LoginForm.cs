@@ -84,6 +84,7 @@ namespace Restaurant_Management_System
                     // Unlock if last attempt is over a day ago
                     if (lastLoginAttempt.HasValue && (DateTime.Now - lastLoginAttempt.Value).TotalDays >= 1)
                     {
+                        AppLog.Write("ACCOUNT_UNLOCKED", $"User '{username}' unlocked after 24 hours.", username);
                         var resetCmd = new SqlCommand("UPDATE Users SET IsLocked = 0, LoginAttempts = 0 WHERE UserId = @id", connection);
                         resetCmd.Parameters.AddWithValue("@id", userId);
                         resetCmd.ExecuteNonQuery();
@@ -114,6 +115,7 @@ namespace Restaurant_Management_System
                         }
                         else
                         {
+                            AppLog.Write("ACCOUNT_UNLOCKED", $"User '{username}' unlocked after lock period.", username);
                             // Unlock after lock period, but keep attempts so next fail escalates lock
                             var unlockCmd = new SqlCommand("UPDATE Users SET IsLocked = 0 WHERE UserId = @id", connection);
                             unlockCmd.Parameters.AddWithValue("@id", userId);
@@ -143,6 +145,7 @@ namespace Restaurant_Management_System
                     }
                     else
                     {
+                        AppLog.Write("LOGIN_FAIL", $"Failed login attempt for user '{username}'. Attempts: {loginAttempts + 1}", username);
                         // Failed: increment attempts, set lock if needed
                         loginAttempts++;
                         bool shouldLock = false;
@@ -172,11 +175,21 @@ namespace Restaurant_Management_System
             }
             catch (SqlException ex)
             {
+                if (ex.Number == 53 || ex.Number == 4060 || ex.Number == 18456)
+                {
+                    MessageBox.Show("Database connection error. Please check your connection settings.", "Connection Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    MessageBox.Show($"Database error: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 MessageBox.Show($"Database error: {ex.Message}\nPlease check your connection.", "Database Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
+                AppLog.Write("LOGIN_ERROR", $"Unexpected error during login: {ex.Message}", username);
                 MessageBox.Show($"Unexpected error: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }

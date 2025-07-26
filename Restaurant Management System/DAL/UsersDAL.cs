@@ -83,7 +83,8 @@ namespace Restaurant_Management_System.DAL
                         insertCmd.Parameters.AddWithValue("@admin", isAdmin);
                         insertCmd.ExecuteNonQuery();
                     }
-
+                    
+                    AppLog.Write("USER_ADDED", $"User '{username}' added or revived.", username);
                     tx.Commit();
                 }
                 catch
@@ -103,6 +104,7 @@ namespace Restaurant_Management_System.DAL
                 cmd.Parameters.AddWithValue("@admin", isAdmin);
                 cmd.Parameters.AddWithValue("@id", userId);
                 cmd.ExecuteNonQuery();
+                AppLog.Write("USER_UPDATED", $"User ID {userId} admin status updated to {isAdmin}.", null);
             }
         }
 
@@ -115,6 +117,7 @@ namespace Restaurant_Management_System.DAL
                 cmd.Parameters.AddWithValue("@locked", isLocked);
                 cmd.Parameters.AddWithValue("@id", userId);
                 cmd.ExecuteNonQuery();
+                AppLog.Write("USER_UPDATED", $"User ID {userId} locked status updated to {isLocked}.", null);
             }
         }
 
@@ -129,11 +132,10 @@ namespace Restaurant_Management_System.DAL
                 var cmd = new SqlCommand("UPDATE Users SET IsDeleted = 1 WHERE UserId = @id AND IsDeleted = 0", conn);
                 cmd.Parameters.AddWithValue("@id", userId);
                 cmd.ExecuteNonQuery();
+                AppLog.Write("USER_DELETED", $"User ID {userId} soft-deleted.", null);
             }
         }
 
-        /* Optional helper if you ever need to check admin by username
-           and ensure the user isn't deleted */
         public static bool IsAdmin(string username)
         {
             using var conn = new SqlConnection(connectionString);

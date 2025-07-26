@@ -64,6 +64,7 @@ namespace Restaurant_Management_System.DAL
                     reviveCmd.ExecuteNonQuery();
 
                     tx.Commit();
+                    AppLog.Write("SERVER_RESTORED", $"Server '{name}' revived from soft-deletion.", null);
                     return;
                 }
 
@@ -74,6 +75,7 @@ namespace Restaurant_Management_System.DAL
                 insert.Parameters.AddWithValue("@name", name);
                 insert.ExecuteNonQuery();
 
+                AppLog.Write("SERVER_ADDED", $"Server '{name}' added.", null);
                 tx.Commit();
             }
             catch (Exception ex)
@@ -116,6 +118,7 @@ namespace Restaurant_Management_System.DAL
                     return;
                 }
 
+                AppLog.Write("SERVER_DELETED", $"Server ID {serverId} soft-deleted.", null);
                 tx.Commit();
             }
             catch (Exception ex)

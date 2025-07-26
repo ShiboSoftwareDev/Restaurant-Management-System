@@ -246,6 +246,7 @@ namespace Restaurant_Management_System.DAL
                 { Parameters = { new SqlParameter("@o", orderId) } }.ExecuteNonQuery();
 
             tx.Commit();
+            AppLog.Write("ORDER_PAID", $"Order ID {orderId} paid. Total: {total:C2}, Discount: {discount}.", null);
             return (total, discount);
         }
 
