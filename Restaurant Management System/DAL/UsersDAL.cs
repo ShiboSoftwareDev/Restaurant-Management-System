@@ -11,9 +11,6 @@ namespace Restaurant_Management_System.DAL
     {
         private static string connectionString = "Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;";
 
-        /* -----------------------------------------------------------
-         *  READ – only show active (IsDeleted = 0)
-         * --------------------------------------------------------- */
         public static List<User> GetAllUsers()
         {
             var users = new List<User>();
@@ -44,10 +41,6 @@ namespace Restaurant_Management_System.DAL
             return users;
         }
 
-        /* -----------------------------------------------------------
-         *  CREATE – if username exists but soft-deleted, revive it
-         *            (set IsDeleted = 0 and update password hash)
-         * --------------------------------------------------------- */
         public static void AddUser(string username, string passwordHash, bool isAdmin)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -57,7 +50,6 @@ namespace Restaurant_Management_System.DAL
 
                 try
                 {
-                    // 1) Try to revive a soft-deleted user with same username
                     var reviveCmd = new SqlCommand(
                         @"UPDATE Users
                           SET IsDeleted = 0,
@@ -73,7 +65,6 @@ namespace Restaurant_Management_System.DAL
                     int revived = reviveCmd.ExecuteNonQuery();
                     if (revived == 0)
                     {
-                        // 2) No soft-deleted row to revive, insert new
                         var insertCmd = new SqlCommand(
                             @"INSERT INTO Users (Username, PasswordHash, IsAdmin, IsLocked, IsDeleted)
                               VALUES (@user, @pass, @admin, 0, 0)",
@@ -121,9 +112,6 @@ namespace Restaurant_Management_System.DAL
             }
         }
 
-        /* -----------------------------------------------------------
-         *  SOFT DELETE – set IsDeleted = 1 (do NOT actually delete)
-         * --------------------------------------------------------- */
         public static void DeleteUser(int userId)
         {
             using (SqlConnection conn = new SqlConnection(connectionString))

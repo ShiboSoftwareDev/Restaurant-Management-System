@@ -8,9 +8,6 @@ namespace Restaurant_Management_System
 {
     public partial class MainForm : Form
     {
-        /* -----------------------------------------------------------
-         *  CLIENTS TAB
-         * --------------------------------------------------------- */
         private void SetupClientsPanel()
         {
             clientsPanel.Controls.Clear();
@@ -75,7 +72,6 @@ namespace Restaurant_Management_System
 
             LoadClients(grid);
 
-            /* ---------- Footer ----------------------------------- */
             var footer = new FlowLayoutPanel
             {
                 Dock          = DockStyle.Bottom,
@@ -137,7 +133,7 @@ namespace Restaurant_Management_System
                 if (MessageBox.Show($"Delete client with ID {id}?", "Confirm Delete",
                                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                 {
-                    DAL.ClientsDAL.DeleteClient(connectionString, id); // soft delete
+                    DAL.ClientsDAL.DeleteClient(connectionString, id);
                     LoadClients(grid);
                 }
             };
@@ -147,13 +143,11 @@ namespace Restaurant_Management_System
             footer.Controls.Add(addBtn);
             footer.Controls.Add(delBtn);
 
-            /* ---------- Assemble panel --------------------------- */
             clientsPanel.Controls.Add(footer);
             clientsPanel.Controls.Add(grid);
             clientsPanel.Controls.Add(header);
         }
 
-        /* Helper */
         private void LoadClients(DataGridView g) =>
             g.DataSource = DAL.ClientsDAL.GetClients(connectionString);
     }

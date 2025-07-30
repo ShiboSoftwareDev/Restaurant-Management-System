@@ -8,16 +8,10 @@ namespace Restaurant_Management_System
 {
     public partial class MainForm : Form
     {
-        /* -----------------------------------------------------------
-         *  USERS TAB  –  Admin-only
-         * --------------------------------------------------------- */
         private void SetupUsersPanel()
         {
             usersPanel.Controls.Clear();
 
-            /* -------------------------------------------------------
-             *  1️⃣  Check if current user is an admin
-             * ----------------------------------------------------- */
             bool   isAdmin  = false;
             string username = LoginForm.CurrentUsername ?? "";
 
@@ -54,9 +48,6 @@ namespace Restaurant_Management_System
                 }
             }
 
-            /* -------------------------------------------------------
-             *  2️⃣  Non-admin view
-             * ----------------------------------------------------- */
             if (!isAdmin)
             {
                 usersPanel.Controls.Add(new Label
@@ -71,9 +62,6 @@ namespace Restaurant_Management_System
                 return;
             }
 
-            /* -------------------------------------------------------
-             *  3️⃣  Admin view – full management UI
-             * ----------------------------------------------------- */
             var header = new Label
             {
                 Text      = "User Management",
@@ -86,7 +74,6 @@ namespace Restaurant_Management_System
                 Padding   = new Padding(16, 0, 0, 0)
             };
 
-            /* ---------- Data grid -------------------------------- */
             var grid = new DataGridView
             {
                 Height = 400,
@@ -141,7 +128,6 @@ namespace Restaurant_Management_System
 
             LoadUsers(grid);
 
-            /* ---------- Footer / add-user area ------------------- */
             var footer = new FlowLayoutPanel
             {
                 Dock          = DockStyle.Bottom,
@@ -172,7 +158,6 @@ namespace Restaurant_Management_System
             };
             var errorProvider = new ErrorProvider();
 
-            /* ----- Add User button -------------------------------- */
             var addBtn = new Button
             {
                 Text      = "Add User",
@@ -234,7 +219,6 @@ namespace Restaurant_Management_System
                 }
             };
 
-            /* ----- Delete / Unlock buttons ------------------------ */
             var delBtn = new Button
             {
                 Text      = "Delete",
@@ -261,7 +245,7 @@ namespace Restaurant_Management_System
                 {
                     try
                     {
-                        DAL.UsersDAL.DeleteUser(id); // now a soft delete
+                        DAL.UsersDAL.DeleteUser(id);
                         LoadUsers(grid);
                     }
                     catch (Exception ex)
@@ -301,10 +285,9 @@ namespace Restaurant_Management_System
                 }
             };
 
-            /* ----- Toggle IsAdmin via grid click ------------------ */
             grid.CellContentClick += (_, e) =>
             {
-                if (e.RowIndex < 0 || e.ColumnIndex != 2) return; // Admin column
+                if (e.RowIndex < 0 || e.ColumnIndex != 2) return;
 
                 var row  = grid.Rows[e.RowIndex];
                 var user = row.DataBoundItem as Models.User;
@@ -323,7 +306,6 @@ namespace Restaurant_Management_System
                 }
             };
 
-            /* ----- Helpers for footer ----------------------------- */
             footer.Controls.Add(new Label
             {
                 Text     = "Username:",
@@ -347,12 +329,10 @@ namespace Restaurant_Management_System
             footer.Controls.Add(delBtn);
             footer.Controls.Add(unlockBtn);
 
-            /* ----- Assemble panel -------------------------------- */
             usersPanel.Controls.Add(footer);
             usersPanel.Controls.Add(grid);
             usersPanel.Controls.Add(header);
 
-            /* ---------- Local helper functions ------------------- */
             bool HasNumber(string s) { foreach (char c in s) if (char.IsDigit(c)) return true; return false; }
             bool HasUpper (string s) { foreach (char c in s) if (char.IsUpper(c)) return true; return false; }
 
@@ -366,7 +346,6 @@ namespace Restaurant_Management_System
             }
         }
 
-        /* Helper to refresh grid data */
         private void LoadUsers(DataGridView g) =>
             g.DataSource = DAL.UsersDAL.GetAllUsers();
     }

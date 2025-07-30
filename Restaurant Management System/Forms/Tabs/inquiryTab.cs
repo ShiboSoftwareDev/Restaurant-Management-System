@@ -17,7 +17,6 @@ namespace Restaurant_Management_System
             bool isAdmin = false;
             string username = LoginForm.CurrentUsername ?? "";
             int userId = 0;
-            // Get userId from database
             if (!string.IsNullOrEmpty(username))
             {
                 try
@@ -56,7 +55,6 @@ namespace Restaurant_Management_System
 
             if (isAdmin)
             {
-                // Admin: view all messages
                 var messagesGrid = new DataGridView
                 {
                     Height = 400,
@@ -70,7 +68,6 @@ namespace Restaurant_Management_System
                 };
                 inquiryPanel.Controls.Add(messagesGrid);
 
-                // Load messages from API
                 Task.Run(async () =>
                 {
                     try
@@ -86,12 +83,10 @@ namespace Restaurant_Management_System
                             var dt = new DataTable();
                             if (messagesArr != null && messagesArr.Count > 0)
                             {
-                                // Add columns from first message
                                 foreach (var col in ((Newtonsoft.Json.Linq.JObject)messagesArr[0]).Properties())
                                 {
                                     dt.Columns.Add(col.Name);
                                 }
-                                // Add rows
                                 foreach (Newtonsoft.Json.Linq.JObject msgObj in messagesArr)
                                 {
                                     var dr = dt.NewRow();
@@ -130,7 +125,6 @@ namespace Restaurant_Management_System
             }
             else
             {
-                // Non-admin: post message
                 var flowPanel = new FlowLayoutPanel
                 {
                     Dock = DockStyle.Fill,
@@ -185,7 +179,6 @@ namespace Restaurant_Management_System
                         statusLabel.Text = "Message cannot be empty.";
                         return;
                     }
-                    // Disable controls and show sending status
                     messageBox.Enabled = false;
                     sendButton.Enabled = false;
                     statusLabel.ForeColor = Color.Blue;

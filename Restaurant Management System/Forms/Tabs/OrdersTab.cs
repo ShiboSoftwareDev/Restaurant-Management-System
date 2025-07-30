@@ -11,14 +11,10 @@ namespace Restaurant_Management_System
 {
     public partial class MainForm : Form
     {
-        /* ---- UI fields ---- */
         private DataGridView ordersGrid;
         private NumericUpDown tableBox;
         private TextBox clientBox;
 
-        /* ===========================================================
-         *  TAB SETUP
-         * ========================================================= */
         private void SetupOrdersPanel()
         {
             ordersPanel.Controls.Clear();
@@ -43,7 +39,6 @@ namespace Restaurant_Management_System
             RefreshGrid();
         }
 
-        /* ---------- GRID ---------- */
         private void BuildGrid()
         {
             ordersGrid = new DataGridView
@@ -114,7 +109,6 @@ namespace Restaurant_Management_System
                 UseColumnTextForButtonValue = true
             };
 
-        /* ---------- FOOTER ---------- */
         private FlowLayoutPanel footer;
 
         private void BuildFooter()
@@ -151,9 +145,6 @@ namespace Restaurant_Management_System
             FlatAppearance = { BorderSize = 0 }
         };
 
-        /* ===========================================================
-         *  GRID CLICK HANDLER
-         * ========================================================= */
         private void OrdersGrid_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -172,7 +163,6 @@ namespace Restaurant_Management_System
             RefreshGrid();
         }
 
-        /* ---------- create order ---------- */
         private void CreateOrder()
         {
             string client = clientBox.Text.Trim();
@@ -190,7 +180,6 @@ namespace Restaurant_Management_System
             }
         }
 
-        /* ---------- assign server ---------- */
         private void ShowAssignDialog(int orderId)
         {
             using var dlg = new Form
@@ -231,13 +220,11 @@ namespace Restaurant_Management_System
             dlg.ShowDialog();
         }
 
-        /* ---------- add / edit items (Qty editable) ---------- */
         private void ShowItemsDialog(int orderId)
         {
             DataTable menu = OrdersDAL.GetMenuItems();
             if (menu.Rows.Count == 0) { MessageBox.Show("No menu items."); return; }
 
-            /* current quantities */
             var existing = new Dictionary<int, int>();
             using (var conn = new SqlConnection("Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;"))
             {
@@ -268,7 +255,6 @@ namespace Restaurant_Management_System
             grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText="Unit", DataPropertyName="Price", Width=80, DefaultCellStyle = new DataGridViewCellStyle { Format="C2"} });
             grid.Columns.Add(new DataGridViewTextBoxColumn { Name="Qty", HeaderText="Qty *", DataPropertyName="Qty", Width=60, DefaultCellStyle = new DataGridViewCellStyle{BackColor=Color.LightYellow} });
 
-            /* bind to mutable class so Qty is editable */
             var items = menu.AsEnumerable().Select(r => new ItemRow
             {
                 Id    = r.Field<int>("ItemId"),
@@ -288,7 +274,6 @@ namespace Restaurant_Management_System
             static void QtyKey(object sender, KeyPressEventArgs e)
             { if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true; }
 
-            /* live total */
             var totalLbl = new Label
             {
                 Dock = DockStyle.Bottom,
@@ -335,14 +320,12 @@ namespace Restaurant_Management_System
             public int Qty { get; set; }
         }
 
-        /* ---------- pay ---------- */
         private void HandlePayment(int orderId)
         {
             var (total, discount) = OrdersDAL.PayOrder(orderId);
 
         }
 
-        /* ---------- misc helpers ---------- */
         private void RefreshGrid() => ordersGrid.DataSource = OrdersDAL.GetActiveOrders();
         private static bool Confirm(string msg) =>
             MessageBox.Show(msg, "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Question)

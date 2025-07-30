@@ -7,9 +7,6 @@ namespace Restaurant_Management_System.DAL
 {
     public static class ClientsDAL
     {
-        /* -----------------------------------------------------------
-         *  READ – only active clients
-         * --------------------------------------------------------- */
         public static DataTable GetClients(string connectionString)
         {
             using var conn = new SqlConnection(connectionString);
@@ -31,10 +28,6 @@ namespace Restaurant_Management_System.DAL
             }
             return dt;
         }
-
-        /* -----------------------------------------------------------
-         *  ADD / REVIVE  (unique active names enforced)
-         * --------------------------------------------------------- */
         public static void AddClient(string connectionString, string name)
         {
             using var conn = new SqlConnection(connectionString);
@@ -43,7 +36,6 @@ namespace Restaurant_Management_System.DAL
 
             try
             {
-                /* 1️⃣  Does an active client with this name already exist? */
                 var existsCmd = new SqlCommand(
                     "SELECT 1 FROM Clients WHERE Name = @name AND IsDeleted = 0",
                     conn, tx);
@@ -57,7 +49,6 @@ namespace Restaurant_Management_System.DAL
                     return;
                 }
 
-                /* 2️⃣  Try to revive a soft‑deleted client with same name */
                 var reviveCmd = new SqlCommand(
                     @"UPDATE Clients
                       SET IsDeleted      = 0,
@@ -68,7 +59,6 @@ namespace Restaurant_Management_System.DAL
 
                 int revived = reviveCmd.ExecuteNonQuery();
 
-                /* 3️⃣  If nothing to revive, insert a fresh client record */
                 if (revived == 0)
                 {
                     var insertCmd = new SqlCommand(
@@ -83,7 +73,6 @@ namespace Restaurant_Management_System.DAL
             }
             catch (SqlException sqlEx) when (sqlEx.Number == 2601 || sqlEx.Number == 2627)
             {
-                /* Unique‑index violation (should be rare because we already check) */
                 tx.Rollback();
                 MessageBox.Show("Client name must be unique.");
             }
@@ -94,9 +83,6 @@ namespace Restaurant_Management_System.DAL
             }
         }
 
-        /* -----------------------------------------------------------
-         *  SOFT DELETE
-         * --------------------------------------------------------- */
         public static void DeleteClient(string connectionString, int clientId)
         {
             using var conn = new SqlConnection(connectionString);

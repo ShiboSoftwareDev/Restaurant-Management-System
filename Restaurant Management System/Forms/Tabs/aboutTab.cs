@@ -25,12 +25,9 @@ namespace Restaurant_Management_System
             };
             aboutPanel.Controls.Add(label);
 
-            // Show loading text and fetch about info from API
             label.Text = "Loading...";
             FetchAboutInfoAsync(label);
         }
-
-        // ...existing code...
 
         private async void FetchAboutInfoAsync(Label label)
         {

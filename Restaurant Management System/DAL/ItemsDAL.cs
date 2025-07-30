@@ -7,9 +7,6 @@ namespace Restaurant_Management_System.DAL
 {
     public static class ItemsDAL
     {
-        /* -----------------------------------------------------------
-         *  READ – only active items
-         * --------------------------------------------------------- */
         public static DataTable GetMenuItems(string connectionString)
         {
             using var conn = new SqlConnection(connectionString);
@@ -32,9 +29,6 @@ namespace Restaurant_Management_System.DAL
             return dt;
         }
 
-        /* -----------------------------------------------------------
-         *  CREATE – revive if soft‑deleted; otherwise insert new
-         * --------------------------------------------------------- */
         public static void AddMenuItem(string connectionString, string name, decimal price)
         {
             using var conn = new SqlConnection(connectionString);
@@ -43,7 +37,6 @@ namespace Restaurant_Management_System.DAL
 
             try
             {
-                // 1️⃣  Try to revive a soft‑deleted row
                 var revive = new SqlCommand(
                     @"UPDATE MenuItems
                       SET    IsDeleted = 0,
@@ -55,7 +48,6 @@ namespace Restaurant_Management_System.DAL
 
                 if (revive.ExecuteNonQuery() == 0)
                 {
-                    // 2️⃣  Insert new
                     var ins = new SqlCommand(
                         @"INSERT INTO MenuItems (Name, Price, IsDeleted)
                           VALUES (@name, @price, 0)",
@@ -74,9 +66,6 @@ namespace Restaurant_Management_System.DAL
             }
         }
 
-        /* -----------------------------------------------------------
-         *  UPDATE – only when item is active
-         * --------------------------------------------------------- */
         public static void UpdateMenuItem(string connectionString, int itemId, string name, decimal price)
         {
             using var conn = new SqlConnection(connectionString);
@@ -98,9 +87,6 @@ namespace Restaurant_Management_System.DAL
             }
         }
 
-        /* -----------------------------------------------------------
-         *  SOFT DELETE – mark as deleted
-         * --------------------------------------------------------- */
         public static void DeleteMenuItem(string connectionString, int itemId)
         {
             using var conn = new SqlConnection(connectionString);

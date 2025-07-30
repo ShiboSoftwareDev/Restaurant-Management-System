@@ -17,7 +17,6 @@ namespace Restaurant_Management_System
         {
             InitializeComponent();
             
-            // Menu item click handlers
             ordersToolStripMenuItem.Click += (s, e) => ShowSection("Orders");
             menuToolStripMenuItem.Click += (s, e) => ShowSection("Items");
             usersToolStripMenuItem.Click += (s, e) => ShowSection("Users");
@@ -43,7 +42,6 @@ namespace Restaurant_Management_System
             
             if (section == "Orders")
             {
-                // if (ordersPanel.Controls.Count == 0) SetupordersPanel();
                 SetupOrdersPanel();
                 ordersPanel.Visible = true;
             }
@@ -59,7 +57,6 @@ namespace Restaurant_Management_System
             }
             else if (section == "Clients")
             {
-                // if (clientsPanel.Controls.Count == 0) SetupClientsPanel();
                 SetupClientsPanel();
                 clientsPanel.Visible = true;
             }

@@ -9,7 +9,6 @@ namespace Restaurant_Management_System.DAL
         private const string Conn =
             "Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;";
 
-        /*  WRITE  ------------------------------------------------- */
         public static void AddLog(string eventName, string description, string? username = null)
         {
             using var conn = new SqlConnection(Conn);
@@ -24,7 +23,6 @@ namespace Restaurant_Management_System.DAL
             cmd.ExecuteNonQuery();
         }
 
-        /*  READ  -------------------------------------------------- */
         public static DataTable GetLogs(int top = 500)
         {
             var dt = new DataTable();

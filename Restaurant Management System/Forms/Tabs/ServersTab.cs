@@ -7,14 +7,10 @@ namespace Restaurant_Management_System
 {
     public partial class MainForm : Form
     {
-        /* -----------------------------------------------------------
-         *  SERVERS TAB
-         * --------------------------------------------------------- */
         private void SetupServersPanel()
         {
             serversPanel.Controls.Clear();
 
-            /* Header ------------------------------------------------ */
             var header = new Label
             {
                 Text               = "Server Management",
@@ -27,7 +23,6 @@ namespace Restaurant_Management_System
                 Padding            = new Padding(16, 0, 0, 0)
             };
 
-            /* Grid -------------------------------------------------- */
             var grid = new DataGridView
             {
                 Height = 400,
@@ -70,7 +65,6 @@ namespace Restaurant_Management_System
 
             LoadServers(grid);
 
-            /* Add / Delete controls -------------------------------- */
             var foot = new FlowLayoutPanel
             {
                 Dock          = DockStyle.Bottom,
@@ -154,7 +148,6 @@ namespace Restaurant_Management_System
             foot.Controls.Add(addBtn);
             foot.Controls.Add(delBtn);
 
-            /* Assemble --------------------------------------------- */
             serversPanel.Controls.Add(foot);
             serversPanel.Controls.Add(grid);
             serversPanel.Controls.Add(header);

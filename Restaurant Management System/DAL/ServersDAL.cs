@@ -7,9 +7,6 @@ namespace Restaurant_Management_System.DAL
 {
     public static class ServersDAL
     {
-        /* -----------------------------------------------------------
-         *  READ – only active (IsDeleted = 0)
-         * --------------------------------------------------------- */
         public static DataTable GetServers(string connectionString)
         {
             var dt = new DataTable();
@@ -34,9 +31,6 @@ namespace Restaurant_Management_System.DAL
             return dt;
         }
 
-        /* -----------------------------------------------------------
-         *  CREATE  (with restore‑if‑soft‑deleted logic)
-         * --------------------------------------------------------- */
         public static void AddServer(string connectionString, string name)
         {
             using var conn = new SqlConnection(connectionString);
@@ -45,7 +39,6 @@ namespace Restaurant_Management_System.DAL
             using var tx = conn.BeginTransaction();
             try
             {
-                /* 1️⃣  Does a soft‑deleted row with this name exist? */
                 var reviveCheck = new SqlCommand(
                     "SELECT ServerId " +
                     "FROM   Servers " +
@@ -54,7 +47,7 @@ namespace Restaurant_Management_System.DAL
 
                 var idObj = reviveCheck.ExecuteScalar();
 
-                if (idObj != null)          // Found a soft‑deleted match – revive it
+                if (idObj != null)
                 {
                     var reviveCmd = new SqlCommand(
                         "UPDATE Servers " +
@@ -68,7 +61,6 @@ namespace Restaurant_Management_System.DAL
                     return;
                 }
 
-                /* 2️⃣  Otherwise, insert a brand‑new row */
                 var insert = new SqlCommand(
                     "INSERT INTO Servers (Name, IsDeleted) VALUES (@name, 0)",
                     conn, tx);
@@ -85,9 +77,6 @@ namespace Restaurant_Management_System.DAL
             }
         }
 
-        /* -----------------------------------------------------------
-         *  SOFT DELETE – flag row & clear references
-         * --------------------------------------------------------- */
         public static void DeleteServer(string connectionString, int serverId)
         {
             using var conn = new SqlConnection(connectionString);
@@ -96,7 +85,6 @@ namespace Restaurant_Management_System.DAL
             using var tx = conn.BeginTransaction();
             try
             {
-                /* 1️⃣  Clear references in Orders */
                 var clear = new SqlCommand(
                     "UPDATE Orders " +
                     "SET    ServerId = NULL " +
@@ -104,7 +92,6 @@ namespace Restaurant_Management_System.DAL
                 clear.Parameters.AddWithValue("@id", serverId);
                 clear.ExecuteNonQuery();
 
-                /* 2️⃣  Flag the server as deleted */
                 var del = new SqlCommand(
                     "UPDATE Servers " +
                     "SET    IsDeleted = 1 " +

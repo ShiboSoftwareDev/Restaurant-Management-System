@@ -9,16 +9,12 @@ namespace Restaurant_Management_System
 {
     public partial class MainForm : Form
     {
-        /* -----------------------------------------------------------
-         *  ACTIVITY LOGS TAB  –  Admin‑only
-         * --------------------------------------------------------- */
         private DataGridView logsGrid;
 
         private void SetupLogsPanel()
         {
             logsPanel.Controls.Clear();
 
-            /* ---------- 1️⃣  Check admin status ---------- */
             bool   isAdmin  = false;
             string username = LoginForm.CurrentUsername ?? "";
 
@@ -43,7 +39,6 @@ namespace Restaurant_Management_System
                 }
             }
 
-            /* ---------- 2️⃣  Non‑admin view ---------- */
             if (!isAdmin)
             {
                 logsPanel.Controls.Add(new Label
@@ -58,7 +53,6 @@ namespace Restaurant_Management_System
                 return;
             }
 
-            /* ---------- 3️⃣  Admin view ---------- */
             var header = new Label
             {
                 Text      = "Activity Logs",

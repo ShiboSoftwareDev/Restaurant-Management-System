@@ -8,8 +8,6 @@ namespace Restaurant_Management_System
 {
     public partial class LoginForm : Form
     {
-        // Store the current logged-in username for use in other forms
-        // Store the current logged-in username for use in other forms
         public static string CurrentUsername { get; private set; }
     
         private string connectionString = "Server=SHIBO;Database=Restaurant;Trusted_Connection=True;TrustServerCertificate=True;";
@@ -61,7 +59,6 @@ namespace Restaurant_Management_System
                 using (var connection = new SqlConnection(connectionString))
                 {
                     connection.Open();
-                    // Get user lock info
                     var cmd = new SqlCommand("SELECT UserId, IsLocked, LastLoginAttempt, LoginAttempts FROM Users WHERE Username = @user", connection);
                     cmd.Parameters.AddWithValue("@user", username);
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -81,7 +78,6 @@ namespace Restaurant_Management_System
                     int loginAttempts = reader.GetInt32(3);
                     reader.Close();
 
-                    // Unlock if last attempt is over a day ago
                     if (lastLoginAttempt.HasValue && (DateTime.Now - lastLoginAttempt.Value).TotalDays >= 1)
                     {
                         AppLog.Write("ACCOUNT_UNLOCKED", $"User '{username}' unlocked after 24 hours.", username);
@@ -92,15 +88,11 @@ namespace Restaurant_Management_System
                         loginAttempts = 0;
                     }
 
-                    // If locked, check lock duration
                     if (isLocked)
                     {
                         double minutesLocked = 0;
-                        // Lock duration depends on the lock level at the time of locking, not current attempts
-                        // So, calculate lock duration based on attempts at time of lock (lastLoginAttempt)
-                        // If just unlocked, next failed attempt should escalate lock
                         if (loginAttempts >= 12)
-                            minutesLocked = 24 * 60; // 1 day
+                            minutesLocked = 24 * 60; 
                         else if (loginAttempts >= 9)
                             minutesLocked = 30;
                         else if (loginAttempts >= 6)
@@ -116,16 +108,13 @@ namespace Restaurant_Management_System
                         else
                         {
                             AppLog.Write("ACCOUNT_UNLOCKED", $"User '{username}' unlocked after lock period.", username);
-                            // Unlock after lock period, but keep attempts so next fail escalates lock
                             var unlockCmd = new SqlCommand("UPDATE Users SET IsLocked = 0 WHERE UserId = @id", connection);
                             unlockCmd.Parameters.AddWithValue("@id", userId);
                             unlockCmd.ExecuteNonQuery();
                             isLocked = false;
-                            // Do not reset loginAttempts here
                         }
                     }
 
-                    // Validate credentials
                     var loginCmd = new SqlCommand("SELECT COUNT(*) FROM Users WHERE Username = @user AND PasswordHash = @pass", connection);
                     loginCmd.Parameters.AddWithValue("@user", username);
                     loginCmd.Parameters.AddWithValue("@pass", hashedPassword);
@@ -134,7 +123,6 @@ namespace Restaurant_Management_System
                     if (result > 0)
                     {
                         AppLog.Write("LOGIN_SUCCESS", $"User '{username}' logged in successfully.", username);
-                        // Success: reset attempts and unlock
                         var successCmd = new SqlCommand("UPDATE Users SET IsLocked = 0, LoginAttempts = 0, LastLoginAttempt = @now WHERE UserId = @id", connection);
                         successCmd.Parameters.AddWithValue("@id", userId);
                         successCmd.Parameters.AddWithValue("@now", DateTime.Now);
@@ -146,7 +134,6 @@ namespace Restaurant_Management_System
                     else
                     {
                         AppLog.Write("LOGIN_FAIL", $"Failed login attempt for user '{username}'. Attempts: {loginAttempts + 1}", username);
-                        // Failed: increment attempts, set lock if needed
                         loginAttempts++;
                         bool shouldLock = false;
                         double lockMinutes = 0;

@@ -8,14 +8,10 @@ namespace Restaurant_Management_System
 {
     public partial class MainForm : Form
     {
-        /* -----------------------------------------------------------
-         *  MENU ITEMS TAB
-         * --------------------------------------------------------- */
         private void SetupItemsPanel()
         {
             itemsPanel.Controls.Clear();
 
-            /* Header ------------------------------------------------ */
             var header = new Label
             {
                 Text = "Menu Items",
@@ -28,7 +24,6 @@ namespace Restaurant_Management_System
                 Padding = new Padding(16, 0, 0, 0)
             };
 
-            /* Grid -------------------------------------------------- */
             itemsGrid = new DataGridView
             {
                 Height = 400,
@@ -77,7 +72,6 @@ namespace Restaurant_Management_System
 
             LoadMenuItems();
 
-            /* Footer (add/edit/delete) ----------------------------- */
             var footer = new FlowLayoutPanel
             {
                 Dock = DockStyle.Bottom,
@@ -169,7 +163,6 @@ namespace Restaurant_Management_System
                 }
             };
 
-            /* assemble footer */
             footer.Controls.Add(new Label { Text = "Name:", AutoSize = true, Font = new Font("Segoe UI", 12), Padding = new Padding(0, 8, 0, 0) });
             footer.Controls.Add(nameBox);
             footer.Controls.Add(new Label { Text = "Price:", AutoSize = true, Font = new Font("Segoe UI", 12), Padding = new Padding(10, 8, 0, 0) });
@@ -178,15 +171,11 @@ namespace Restaurant_Management_System
             footer.Controls.Add(editBtn);
             footer.Controls.Add(delBtn);
 
-            /* assemble panel */
             itemsPanel.Controls.Add(footer);
             itemsPanel.Controls.Add(itemsGrid);
             itemsPanel.Controls.Add(header);
         }
 
-        /* -----------------------------------------------------------
-         *  Helpers
-         * --------------------------------------------------------- */
         private void LoadMenuItems() =>
             itemsGrid.DataSource = DAL.ItemsDAL.GetMenuItems(connectionString);
 
@@ -201,7 +190,6 @@ namespace Restaurant_Management_System
             string name = drv["Name"].ToString();
             decimal price = Convert.ToDecimal(drv["Price"]);
 
-            /* simple inline edit form -------------------------------- */
             using var dlg = new Form
             {
                 Width = 420,
